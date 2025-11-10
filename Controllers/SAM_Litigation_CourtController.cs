@@ -57,7 +57,7 @@ namespace SAMLitigation.Controllers
                     return Json(new
                     {
                         success = true,
-                        message = $"Lawyer '{courtName}' has been added successfully!"
+                        message = $"Court '{courtName}' has been added successfully!"
                     });
                 }
                 else

@@ -1,0 +1,272 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Cause Management";
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Cause Management</h2>
+</div>
+
+<!-- Add Cause Card Form -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Cause</h5>
+    </div>
+    <div class="card-body">
+        <form id="addCauseForm">
+            <div class="row g-3">
+                <!-- Cause Name -->
+                <div class="col-md-8">
+                    <label for="CauseName" class="form-label">Cause Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="CauseName" name="CauseName" required>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-save me-2"></i>Save Cause
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-undo me-2"></i>Reset
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Causes DataTable Card -->
+<div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Causes List</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="causesTable" class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Cause Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be populated via AJAX -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Cause Modal -->
+<div class="modal fade" id="editCauseModal" tabindex="-1" aria-labelledby="editCauseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="editCauseModalLabel">
+                    <i class="fas fa-edit me-2"></i>Edit Cause
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCauseForm">
+                    <input type="hidden" id="editCauseId" name="CauseId">
+                    <div class="mb-3">
+                        <label for="editCauseName" class="form-label">Cause Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editCauseName" name="CauseName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-warning" onclick="updateCause()">
+                    <i class="fas fa-save me-2"></i>Update Cause
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- DataTables CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Load causes on page load
+            loadCauses();
+
+            // Handle add cause form submission
+            $('#addCauseForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var causeName = $('#CauseName').val().trim();
+
+                if (!causeName) {
+                    alert('Please enter cause name');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("AddCause", "SAM_Litigation_Cause")',
+                    type: 'POST',
+                    data: { causeName: causeName },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#addCauseForm')[0].reset();
+                            location.reload(); // Reload page to get fresh data
+                        } else {
+                            alert(response.message || 'Failed to add cause');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error adding cause:', error);
+                        alert('Error adding cause: ' + error);
+                    }
+                });
+            });
+        });
+
+        // Load causes from server
+        function loadCauses() {
+            var causes = @Html.Raw(Json.Serialize(ViewBag.Causes));
+            console.log('Loaded', causes.length, 'causes');
+            populateCauseTable(causes);
+        }
+
+        // Populate cause table
+        function populateCauseTable(causes) {
+            console.log('Populating table with', causes.length, 'causes');
+            var tbody = $('#causesTable tbody');
+            tbody.empty();
+
+            if (causes.length === 0) {
+                tbody.append('<tr><td colspan="3" class="text-center text-muted">No causes found</td></tr>');
+                return;
+            }
+
+            $.each(causes, function(index, cause) {
+                var row = `
+                    <tr>
+                        <td>${cause.value || 'N/A'}</td>
+                        <td>${cause.text || 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editCause('${cause.value}', '${escapeHtml(cause.text)}')" title="Edit Cause">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+
+            console.log('Table populated successfully');
+
+            // Initialize or reinitialize DataTable
+            if ($.fn.DataTable.isDataTable('#causesTable')) {
+                $('#causesTable').DataTable().destroy();
+            }
+            $('#causesTable').DataTable({
+                "pageLength": 5,
+                "order": [[0, "desc"]],
+                "searching": false,
+                "lengthChange": false,
+                "language": {
+                    "emptyTable": "No causes found"
+                }
+            });
+        }
+
+        // Edit cause function - opens modal
+        function editCause(id, name) {
+            $('#editCauseId').val(id);
+            $('#editCauseName').val(name);
+            $('#editCauseModal').modal('show');
+        }
+
+        // Update cause function
+        function updateCause() {
+            var causeId = $('#editCauseId').val();
+            var causeName = $('#editCauseName').val().trim();
+
+            if (!causeName) {
+                alert('Please enter cause name');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("UpdateCause", "SAM_Litigation_Cause")',
+                type: 'POST',
+                data: {
+                    causeId: causeId,
+                    causeName: causeName
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        $('#editCauseModal').modal('hide');
+                        location.reload(); // Reload page to get fresh data
+                    } else {
+                        alert(response.message || 'Failed to update cause');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error updating cause:', error);
+                    alert('Error updating cause: ' + error);
+                }
+            });
+        }
+
+        // Helper function to escape HTML and prevent XSS attacks
+        function escapeHtml(text) {
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    </script>
+}
+<style>
+    .card {
+        border: none;
+        border-radius: 8px;
+    }
+
+    .card-header {
+        border-radius: 8px 8px 0 0 !important;
+        padding: 1rem 1.5rem;
+    }
+
+    .table-responsive {
+        border-radius: 4px;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .btn {
+        border-radius: 4px;
+    }
+
+    .modal-content {
+        border-radius: 8px;
+    }
+
+    .modal-header {
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+</style>
