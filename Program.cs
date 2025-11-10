@@ -1,0 +1,60 @@
+﻿using Microsoft.EntityFrameworkCore;
+using SAMLitigation.Models.ApplicationDbContext;
+using SAMLitigation.Services;
+using SAMLitigation.Services.ServiceImple;
+
+
+var builder = WebApplication.CreateBuilder(args);
+
+
+// 🔑 Register AppDbContext with connection string
+var connectionString = builder.Configuration.GetConnectionString("IDCOLMISConnection");
+builder.Services.AddDbContext<SAMDbContext>(options =>
+    options.UseSqlServer(connectionString));
+builder.Services.AddScoped<UserTableService, UserTableServiceImple>();
+builder.Services.AddScoped<AuthenticateService, AuthenticateServiceImple>();
+builder.Services.AddScoped<LawyerService, LawyerServiceImple>();
+builder.Services.AddScoped<CourtService, CourtServiceImple>();
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddAuthentication("MyCookieAuth")
+    .AddCookie("MyCookieAuth", options =>
+    {
+        options.LoginPath = "/Login/Index";   // Adjust this to your actual login path
+        options.AccessDeniedPath = "/Login/AccessDenied"; // Optional
+    });
+
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+app.UseSession();
+
+
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=SAM_Litigation_Court}/{action=Index}/{id?}");
+
+app.Run();

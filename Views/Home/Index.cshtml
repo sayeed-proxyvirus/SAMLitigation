@@ -1,0 +1,11 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Lawyer Information View";
+    var lawyer = ViewBag.Lawyer as List<SelectListItem>;
+    var court = ViewBag.Court as List<SelectListItem>;
+}
+<h2 class="mb-4">Lawyer Information View</h2>
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>

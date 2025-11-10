@@ -1,0 +1,14 @@
+﻿using SAMLitigation.Models;
+using SAMLitigation.Models.ViewModel;
+
+namespace SAMLitigation.Services
+{
+    public interface UserTableService
+    {
+        public bool ValidateUser(string username, string password);
+
+        public UserTable GetUserByUsername(string username);
+
+        public List<UserRoleRelationViewModel> GetUserRoleByUserId(decimal UserId);
+    }
+}

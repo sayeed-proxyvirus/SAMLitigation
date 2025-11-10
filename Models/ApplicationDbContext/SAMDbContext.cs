@@ -1,0 +1,25 @@
+﻿using Microsoft.EntityFrameworkCore;
+using SAMLitigation.Models.ViewModel;
+
+namespace SAMLitigation.Models.ApplicationDbContext
+{
+    public class SAMDbContext:DbContext
+    {
+        public SAMDbContext(DbContextOptions<SAMDbContext> options): base(options)
+        {
+            
+        }
+
+        public DbSet<UserTable> UsersTable { get; set; }
+        public DbSet<UserRoleRelationViewModel> UserRoleViewModel { get; set; }
+        public DbSet<SAM_Litigation_Lawyer> Lawyer { get; set; }
+        public DbSet<SAM_Litigation_Court> Court { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<UserRoleRelationViewModel>().HasNoKey();
+        }
+    }
+}

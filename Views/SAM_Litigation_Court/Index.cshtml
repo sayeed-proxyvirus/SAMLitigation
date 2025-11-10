@@ -1,0 +1,272 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Court Management";
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Court Management</h2>
+</div>
+
+<!-- Add Court Card Form -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Court</h5>
+    </div>
+    <div class="card-body">
+        <form id="addCourtForm">
+            <div class="row g-3">
+                <!-- Court Name -->
+                <div class="col-md-8">
+                    <label for="CourtName" class="form-label">Court Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="CourtName" name="CourtName" required>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-save me-2"></i>Save Court
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-undo me-2"></i>Reset
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Courts DataTable Card -->
+<div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Courts List</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="courtsTable" class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Court Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be populated via AJAX -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Court Modal -->
+<div class="modal fade" id="editCourtModal" tabindex="-1" aria-labelledby="editCourtModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="editCourtModalLabel">
+                    <i class="fas fa-edit me-2"></i>Edit Court
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCourtForm">
+                    <input type="hidden" id="editCourtId" name="CourtId">
+                    <div class="mb-3">
+                        <label for="editCourtName" class="form-label">Court Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editCourtName" name="CourtName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-warning" onclick="updateCourt()">
+                    <i class="fas fa-save me-2"></i>Update Court
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- DataTables CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Load courts on page load
+            loadCourts();
+
+            // Handle add court form submission
+            $('#addCourtForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var courtName = $('#CourtName').val().trim();
+
+                if (!courtName) {
+                    alert('Please enter court name');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("AddCourt", "SAM_Litigation_Court")',
+                    type: 'POST',
+                    data: { courtName: courtName },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#addCourtForm')[0].reset();
+                            location.reload(); // Reload page to get fresh data
+                        } else {
+                            alert(response.message || 'Failed to add court');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error adding court:', error);
+                        alert('Error adding court: ' + error);
+                    }
+                });
+            });
+        });
+
+        // Load courts from server
+        function loadCourts() {
+            var courts = @Html.Raw(Json.Serialize(ViewBag.Courts));
+            console.log('Loaded', courts.length, 'courts');
+            populateCourtTable(courts);
+        }
+
+        // Populate court table
+        function populateCourtTable(courts) {
+            console.log('Populating table with', courts.length, 'courts');
+            var tbody = $('#courtsTable tbody');
+            tbody.empty();
+
+            if (courts.length === 0) {
+                tbody.append('<tr><td colspan="3" class="text-center text-muted">No courts found</td></tr>');
+                return;
+            }
+
+            $.each(courts, function(index, court) {
+                var row = `
+                    <tr>
+                        <td>${court.value || 'N/A'}</td>
+                        <td>${court.text || 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editCourt('${court.value}', '${escapeHtml(court.text)}')" title="Edit Court">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+
+            console.log('Table populated successfully');
+
+            // Initialize or reinitialize DataTable
+            if ($.fn.DataTable.isDataTable('#courtsTable')) {
+                $('#courtsTable').DataTable().destroy();
+            }
+            $('#courtsTable').DataTable({
+                "pageLength": 5,
+                "order": [[0, "desc"]],
+                "searching": false,
+                "lengthChange": false,
+                "language": {
+                    "emptyTable": "No courts found"
+                }
+            });
+        }
+
+        // Edit court function - opens modal
+        function editCourt(id, name) {
+            $('#editCourtId').val(id);
+            $('#editCourtName').val(name);
+            $('#editCourtModal').modal('show');
+        }
+
+        // Update court function
+        function updateCourt() {
+            var courtId = $('#editCourtId').val();
+            var courtName = $('#editCourtName').val().trim();
+
+            if (!courtName) {
+                alert('Please enter court name');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("UpdateCourt", "SAM_Litigation_Court")',
+                type: 'POST',
+                data: {
+                    courtId: courtId,
+                    courtName: courtName
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        $('#editCourtModal').modal('hide');
+                        location.reload(); // Reload page to get fresh data
+                    } else {
+                        alert(response.message || 'Failed to update court');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error updating court:', error);
+                    alert('Error updating court: ' + error);
+                }
+            });
+        }
+
+        // Helper function to escape HTML and prevent XSS attacks
+        function escapeHtml(text) {
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    </script>
+}
+<style>
+    .card {
+        border: none;
+        border-radius: 8px;
+    }
+
+    .card-header {
+        border-radius: 8px 8px 0 0 !important;
+        padding: 1rem 1.5rem;
+    }
+
+    .table-responsive {
+        border-radius: 4px;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .btn {
+        border-radius: 4px;
+    }
+
+    .modal-content {
+        border-radius: 8px;
+    }
+
+    .modal-header {
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+</style>

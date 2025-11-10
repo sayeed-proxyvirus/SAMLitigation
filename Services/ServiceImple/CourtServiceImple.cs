@@ -1,0 +1,74 @@
+﻿using Microsoft.EntityFrameworkCore;
+using SAMLitigation.Models;
+using SAMLitigation.Models.ApplicationDbContext;
+
+namespace SAMLitigation.Services.ServiceImple
+{
+    public class CourtServiceImple : CourtService
+    {
+        private readonly SAMDbContext _context;
+        //private readonly AppDbContext _context;
+        public CourtServiceImple(SAMDbContext context)
+        {
+            _context = context;
+        }
+        public SAM_Litigation_Court GetById(decimal Id)
+        {
+            try
+            {
+                var court = _context.Court
+                    .FirstOrDefault(c => c.LitigationCourtID == Id);
+
+                return court;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+        public List<SAM_Litigation_Court> GetCourt()
+        {
+            try
+            {
+                var court = _context.Court
+                    .FromSqlRaw("EXEC GetCourtALL")
+                    .ToList();
+                return court;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+        public bool AddCourt(SAM_Litigation_Court Court)
+        {
+            try
+            {
+                _context.Court.Add(Court);
+                int result = _context.SaveChanges();
+                return result > 0;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+        public bool UpdateCourt(SAM_Litigation_Court Court)
+        {
+            try
+            {
+                _context.Court.Update(Court);
+                int result = _context.SaveChanges();
+                return result > 0;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+    }
+}

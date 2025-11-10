@@ -1,0 +1,71 @@
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
+using SAMLitigation.Models.ViewModel;
+using SAMLitigation.Services;
+using System.Security.Claims;
+using System.Text.Json;
+
+namespace SAMLitigation.Controllers
+{
+    public class LoginController : Controller
+    {
+
+        private AuthenticateService _authenticateService;
+        private UserTableService _userTableService;
+
+        public LoginController(AuthenticateService authenticateService, UserTableService userTableService)
+        {
+            _authenticateService = authenticateService;
+            _userTableService = userTableService;
+        }
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Index(LoginViewModel model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var user = _authenticateService.AuthenticateAsync(model.UserName, model.Password);
+
+                    if (user != null)
+                    {
+                        // ✅ Create claims
+                        var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, model.UserName),
+                    new Claim(ClaimTypes.NameIdentifier,user.UserId.ToString())// Replace with actual property name
+                    // You can add more claims like roles here if needed
+                };
+
+                        var identity = new ClaimsIdentity(claims, "MyCookieAuth");
+                        var principal = new ClaimsPrincipal(identity);
+
+                        // ✅ Sign in
+                        HttpContext.SignInAsync("MyCookieAuth", principal);
+
+                        //Set Roles in Session
+                        var roles = _userTableService.GetUserRoleByUserId(user.UserId);
+                        var roleJson = JsonSerializer.Serialize(roles);
+                        HttpContext.Session.SetString("roles", roleJson);
+
+                        return RedirectToAction("Index", "Home");
+                    }
+
+                    ModelState.AddModelError(string.Empty, "Invalid username or password.");
+                }
+
+                return View(model);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+    }
+}
