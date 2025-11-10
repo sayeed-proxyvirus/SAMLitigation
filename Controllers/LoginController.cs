@@ -67,5 +67,12 @@ namespace SAMLitigation.Controllers
                 throw;
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync("MyCookieAuth"); // 👈 specify the scheme
+            return RedirectToAction("Index", "Login");
+        }
     }
 }

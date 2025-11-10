@@ -4,22 +4,23 @@ using SAMLitigation.Models.ApplicationDbContext;
 
 namespace SAMLitigation.Services.ServiceImple
 {
-    public class CourtServiceImple : CourtService
+    public class CauseServiceImple : CauseService
     {
+        private readonly ILogger _logger;
         private readonly SAMDbContext _context;
-        //private readonly AppDbContext _context;
-        public CourtServiceImple(SAMDbContext context)
+        public CauseServiceImple(SAMDbContext context) 
         {
             _context = context;
         }
-        public SAM_Litigation_Court GetById(decimal Id)
+
+        public SAM_Litigation_Cause GetCauseById(decimal Id) 
         {
             try
             {
-                var court = _context.Court
-                    .FirstOrDefault(c => c.LitigationCourtID == Id);
+                var cause = _context.Cause
+                    .FirstOrDefault(c => c.LitigationCauseID == Id);
 
-                return court;
+                return cause;
             }
             catch (Exception)
             {
@@ -27,14 +28,14 @@ namespace SAMLitigation.Services.ServiceImple
                 throw;
             }
         }
-        public List<SAM_Litigation_Court> GetCourtALL()
+        public List<SAM_Litigation_Cause> GetCauses() 
         {
             try
             {
-                var court = _context.Court
-                    .FromSqlRaw("EXEC GetCourtALL")
+                var cause = _context.Cause
+                    .FromSqlRaw("EXEC GetCauseALL")
                     .ToList();
-                return court;
+                return cause;
             }
             catch (Exception)
             {
@@ -42,11 +43,11 @@ namespace SAMLitigation.Services.ServiceImple
                 throw;
             }
         }
-        public bool AddCourt(SAM_Litigation_Court Court)
+        public bool AddCause(SAM_Litigation_Cause Cause) 
         {
             try
             {
-                _context.Court.Add(Court);
+                _context.Cause.Add(Cause);
                 int result = _context.SaveChanges();
                 return result > 0;
             }
@@ -56,11 +57,11 @@ namespace SAMLitigation.Services.ServiceImple
                 throw;
             }
         }
-        public bool UpdateCourt(SAM_Litigation_Court Court)
+        public bool UpdateCause(SAM_Litigation_Cause Cause) 
         {
             try
             {
-                _context.Court.Update(Court);
+                _context.Cause.Update(Cause);
                 int result = _context.SaveChanges();
                 return result > 0;
             }

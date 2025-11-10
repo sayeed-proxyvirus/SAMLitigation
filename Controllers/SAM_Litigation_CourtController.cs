@@ -23,7 +23,7 @@ namespace SAMLitigation.Controllers
             try
             {
                 
-                List<SAM_Litigation_Court> ListCourt = _courtService.GetCourt();
+                List<SAM_Litigation_Court> ListCourt = _courtService.GetCourtALL();
 
                 ViewBag.Courts = ListCourt.Select(x => new SelectListItem
                 {
