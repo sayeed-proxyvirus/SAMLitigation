@@ -25,6 +25,15 @@ namespace SAMLitigation.Models.ApplicationDbContext
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<UserRoleRelationViewModel>().HasNoKey();
+            modelBuilder.Entity<Loan_NC_T_ProjectType>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ProjectTypeName).IsRequired().HasMaxLength(100);
+                entity.HasOne(e => e.Sector)
+                    .WithMany(s => s.Sectors)
+                    .HasForeignKey(e => e.SectorId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
         }
     }
 }
