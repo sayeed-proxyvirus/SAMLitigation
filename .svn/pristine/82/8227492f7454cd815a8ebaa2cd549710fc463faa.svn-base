@@ -1,0 +1,31 @@
+﻿using Microsoft.EntityFrameworkCore;
+using SAMLitigation.Models;
+using SAMLitigation.Models.ApplicationDbContext;
+
+namespace SAMLitigation.Services.ServiceImple
+{
+    public class OnServiceImple : OnService
+    {
+        private readonly ILogger _logger;
+        private readonly SAMDbContext _context;
+        public OnServiceImple(SAMDbContext context) 
+        {
+            _context = context;
+        }
+        public List<SAM_Litigation_On> GetOnsALL()
+        {
+            try
+            {
+                var ons = _context.On
+                    .FromSqlRaw("EXEC GetOnsALL")
+                    .ToList();
+                return ons;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+    }
+}

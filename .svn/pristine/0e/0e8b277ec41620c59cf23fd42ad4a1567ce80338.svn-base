@@ -33,7 +33,5 @@ namespace SAMLitigation.Controllers
                 throw;
             }
         }
-
-
     }
 }

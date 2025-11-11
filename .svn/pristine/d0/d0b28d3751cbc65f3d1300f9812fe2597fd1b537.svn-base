@@ -1,0 +1,133 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using SAMLitigation.Models;
+using SAMLitigation.Services;
+
+namespace SAMLitigation.Controllers
+{
+    public class SAM_Litigation_TypeController : Controller
+    {
+        private readonly ILogger<SAM_Litigation_TypeController> _logger;
+        private readonly TypeService _typeService;
+
+        public SAM_Litigation_TypeController(ILogger<SAM_Litigation_TypeController> logger, TypeService typeService)
+        {
+            _logger = logger;
+            _typeService = typeService;
+        }
+        [HttpGet]
+        public IActionResult Index()
+        {
+            try
+            {
+                List<SAM_Litigation_Type> ListType = _typeService.GetTypesALL();
+                ViewBag.Types = ListType.Select(x => new SelectListItem
+                {
+                    Value = x.LitigationTypeID.ToString(),
+                    Text = x.LitigationTypeName
+                }).ToList() ?? new List<SelectListItem>();
+                return View();
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        [HttpPost]
+        public IActionResult AddType(string typeName)
+        {
+            try
+            {
+                var Type = new SAM_Litigation_Type
+                {
+                    LitigationTypeName = typeName
+                };
+                bool success = _typeService.AddType(Type);
+                if (success)
+                {
+                    _logger.LogInformation("Type is added successfully");
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Type '{typeName}' has been added successfully!"
+                    });
+                }
+                else
+                {
+                    _logger.LogWarning("Type data addition has been failed");
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Failed to add Type. Please try again."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception in AddType: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError($"Inner Exception: {ex.InnerException.Message}");
+                }
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred: " + ex.Message
+                });
+            }
+        }
+        [HttpPost]
+        public IActionResult UpdateType(decimal typeId, string typeName)
+        {
+            try
+            {
+                _logger.LogInformation($"Updating lawyer: {typeName}");
+
+                var existingType = _typeService.GetTypeById(typeId);
+                if (existingType == null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Type not found."
+                    });
+                }
+                existingType.LitigationTypeName = typeName;
+                bool success = _typeService.UpdateType(existingType);
+                if (success)
+                {
+                    _logger.LogInformation("Type Information is updated successfully");
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Type'{typeName}' has been updated successfully!"
+                    });
+                }
+                else
+                {
+                    _logger.LogWarning("Type data update has been failed");
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Failed to update Type. Please try again."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception in AddType: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError($"Inner Exception: {ex.InnerException.Message}");
+                }
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred: " + ex.Message
+                });
+            }
+        }
+    }
+}

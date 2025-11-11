@@ -1,0 +1,147 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using SAMLitigation.Models;
+using SAMLitigation.Services;
+using SAMLitigation.Services.ServiceImple;
+
+namespace SAMLitigation.Controllers
+{
+    public class SAM_Litigation_LawyerController : Controller
+    {
+        private readonly ILogger<SAM_Litigation_CourtController> _logger;
+        private readonly LawyerService _lawyerService;
+
+
+        public SAM_Litigation_LawyerController(ILogger<SAM_Litigation_CourtController> logger, LawyerService lawyerService)
+        {
+            _logger = logger;
+            _lawyerService = lawyerService;
+        }
+        [HttpGet]
+        public IActionResult Index()
+        {
+            try
+            {
+
+                List<SAM_Litigation_Lawyer> ListLawyer = _lawyerService.GetLawyerALL();
+
+                ViewBag.ListLawyers = ListLawyer.Select(x => new SelectListItem
+                {
+                    Value = x.LitigationLawyerID.ToString(),
+                    Text = x.LawyerName
+                }).ToList() ?? new List<SelectListItem>();
+                return View();
+                //Console.WriteLine("ViewBag Loaded");
+                //_logger.LogInformation("Index view data prepared successfully");
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+        [HttpPost]
+        public IActionResult AddLawyer
+            (
+            string lawyerName
+            )
+        {
+            try
+            {
+                var Lawyer = new SAM_Litigation_Lawyer
+                {
+                    LawyerName = lawyerName
+                };
+                bool success = _lawyerService.AddLawyer(Lawyer);
+                if (success)
+                {
+                    _logger.LogInformation("Lawyer is added successfully");
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Lawyer '{lawyerName}' has been added successfully!"
+                    });
+                }
+                else
+                {
+                    _logger.LogWarning("Lawyer data addition has been failed");
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Failed to add lawyer. Please try again."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception in AddLawyer: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError($"Inner Exception: {ex.InnerException.Message}");
+                }
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred: " + ex.Message
+                });
+            }
+        }
+
+
+        [HttpPost]
+        public IActionResult UpdateLawyer
+            (
+            decimal lawyerId,
+            string lawyerName
+            )
+        {
+            try
+            {
+                _logger.LogInformation($"Updating lawyer: {lawyerName}");
+
+                var existingLawyer = _lawyerService.GetById(lawyerId);
+                if (existingLawyer == null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Lawyer not found."
+                    });
+                }
+                existingLawyer.LawyerName = lawyerName;
+                bool success = _lawyerService.UpdateLawyer(existingLawyer);
+                if (success)
+                {
+                    _logger.LogInformation("Lawyer is updated successfully");
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Lawyer '{lawyerName}' has been updated successfully!"
+                    });
+                }
+                else
+                {
+                    _logger.LogWarning("Lawyer data update has been failed");
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Failed to update lawyer. Please try again."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception in AddLawyer: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError($"Inner Exception: {ex.InnerException.Message}");
+                }
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred: " + ex.Message
+                });
+            }
+        }
+    }
+}

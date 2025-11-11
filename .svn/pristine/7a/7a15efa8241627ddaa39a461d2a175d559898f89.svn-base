@@ -34,6 +34,10 @@ namespace SAMLitigation.Controllers
             }
         }
 
-
+        [HttpPost]
+        public ActionResult Test()
+        {
+            return View();
+        }
     }
 }

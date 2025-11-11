@@ -1,0 +1,272 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Lawyer Management";
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Lawyer Management</h2>
+</div>
+
+<!-- Add Lawyer Card Form -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Lawyer</h5>
+    </div>
+    <div class="card-body">
+        <form id="addLawyerForm">
+            <div class="row g-3">
+                <!-- Lawyer Name -->
+                <div class="col-md-8">
+                    <label for="LawyerName" class="form-label">Lawyer Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="LawyerName" name="LawyerName" required>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-save me-2"></i>Save Lawyer
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-undo me-2"></i>Reset
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lawyers DataTable Card -->
+<div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Lawyers List</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="lawyersTable" class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Lawyer Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be populated via AJAX -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Lawyer Modal -->
+<div class="modal fade" id="editLawyerModal" tabindex="-1" aria-labelledby="editLawyerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="editLawyerModalLabel">
+                    <i class="fas fa-edit me-2"></i>Edit Lawyer
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editLawyerForm">
+                    <input type="hidden" id="editLawyerId" name="LawyerId">
+                    <div class="mb-3">
+                        <label for="editLawyerName" class="form-label">Lawyer Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editLawyerName" name="LawyerName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-warning" onclick="updateLawyer()">
+                    <i class="fas fa-save me-2"></i>Update Lawyer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- DataTables CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Load lawyers on page load
+            loadLawyers();
+
+            // Handle add lawyer form submission
+            $('#addLawyerForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var lawyerName = $('#LawyerName').val().trim();
+
+                if (!lawyerName) {
+                    alert('Please enter lawyer name');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("AddLawyer", "SAM_Litigation_Lawyer")',
+                    type: 'POST',
+                    data: { lawyerName: lawyerName },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#addLawyerForm')[0].reset();
+                            loadLawyers();
+                        } else {
+                            alert(response.message || 'Failed to add lawyer');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error adding lawyer:', error);
+                        alert('Error adding lawyer: ' + error);
+                    }
+                });
+            });
+        });
+
+        // Load lawyers from server
+        function loadLawyers() {
+            var lawyers = @Html.Raw(Json.Serialize(ViewBag.ListLawyers));
+            console.log('Loaded', lawyers.length, 'lawyers');
+            populateLawyerTable(lawyers);
+        }
+
+        // Populate lawyer table
+        function populateLawyerTable(lawyers) {
+            console.log('Populating table with', lawyers.length, 'lawyers');
+            var tbody = $('#lawyersTable tbody');
+            tbody.empty();
+
+            if (lawyers.length === 0) {
+                tbody.append('<tr><td colspan="3" class="text-center text-muted">No lawyers found</td></tr>');
+                return;
+            }
+
+            $.each(lawyers, function(index, lawyer) {
+                var row = `
+                    <tr>
+                        <td>${lawyer.value || 'N/A'}</td>
+                        <td>${lawyer.text || 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editLawyer('${lawyer.value}', '${escapeHtml(lawyer.text)}')" title="Edit Lawyer">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+
+            console.log('Table populated successfully');
+
+            // Initialize or reinitialize DataTable
+            if ($.fn.DataTable.isDataTable('#lawyersTable')) {
+                $('#lawyersTable').DataTable().destroy();
+            }
+            $('#lawyersTable').DataTable({
+                "pageLength": 5,
+                "order": [[0, "desc"]],
+                "searching": false,
+                "lengthChange": false,
+                "language": {
+                    "emptyTable": "No lawyers found"
+                }
+            });
+        }
+
+        // Edit lawyer function - opens modal
+        function editLawyer(id, name) {
+            $('#editLawyerId').val(id);
+            $('#editLawyerName').val(name);
+            $('#editLawyerModal').modal('show');
+        }
+
+        // Update lawyer function
+        function updateLawyer() {
+            var lawyerId = $('#editLawyerId').val();
+            var lawyerName = $('#editLawyerName').val().trim();
+
+            if (!lawyerName) {
+                alert('Please enter lawyer name');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("UpdateLawyer", "SAM_Litigation_Lawyer")',
+                type: 'POST',
+                data: {
+                    lawyerId: lawyerId,
+                    lawyerName: lawyerName
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        $('#editLawyerModal').modal('hide');
+                        location.reload(); // Reload page to get fresh data
+                    } else {
+                        alert(response.message || 'Failed to update lawyer');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error updating lawyer:', error);
+                    alert('Error updating lawyer: ' + error);
+                }
+            });
+        }
+
+        // Helper function to escape HTML and prevent XSS attacks
+        function escapeHtml(text) {
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    </script>
+}
+<style>
+    .card {
+        border: none;
+        border-radius: 8px;
+    }
+
+    .card-header {
+        border-radius: 8px 8px 0 0 !important;
+        padding: 1rem 1.5rem;
+    }
+
+    .table-responsive {
+        border-radius: 4px;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .btn {
+        border-radius: 4px;
+    }
+
+    .modal-content {
+        border-radius: 8px;
+    }
+
+    .modal-header {
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+</style>
