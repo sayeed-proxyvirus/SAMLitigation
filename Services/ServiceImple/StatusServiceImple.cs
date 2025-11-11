@@ -4,23 +4,23 @@ using SAMLitigation.Models.ApplicationDbContext;
 
 namespace SAMLitigation.Services.ServiceImple
 {
-    public class OnServiceImple : OnService
+    public class StatusServiceImple : StatusService
     {
         private readonly ILogger _logger;
         private readonly SAMDbContext _context;
-        public OnServiceImple(ILogger logger, SAMDbContext context) 
+        public StatusServiceImple(ILogger logger, SAMDbContext context)
         {
             _logger = logger;
             _context = context;
         }
-        public List<SAM_Litigation_On> GetOnsALL()
+        public List<SAM_Litigation_Status> GetStatusALL() 
         {
             try
             {
-                var ons = _context.On
-                    .FromSqlRaw("EXEC GetOnsALL")
+                var stats = _context.Status
+                    .FromSqlRaw("EXEC GetStatusALL")
                     .ToList();
-                return ons;
+                return stats;
             }
             catch (Exception)
             {

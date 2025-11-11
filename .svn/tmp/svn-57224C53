@@ -13,13 +13,12 @@ builder.Services.AddDbContext<SAMDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddScoped<UserTableService, UserTableServiceImple>();
 builder.Services.AddScoped<AuthenticateService, AuthenticateServiceImple>();
-builder.Services.AddScoped<CauseService, CauseServiceImple>();
-builder.Services.AddScoped<CourtService, CourtServiceImple>();
-builder.Services.AddScoped<DashboardService, DashboardServiceImple>();
 builder.Services.AddScoped<LawyerService, LawyerServiceImple>();
+builder.Services.AddScoped<CourtService, CourtServiceImple>();
+builder.Services.AddScoped<CauseService, CauseServiceImple>();
 builder.Services.AddScoped<OnService, OnServiceImple>();
-builder.Services.AddScoped<StatusService, StatusServiceImple>();
 builder.Services.AddScoped<TypeService, TypeServiceImple>();
+builder.Services.AddScoped<StatusService, StatusServiceImple>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -60,6 +59,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Login}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

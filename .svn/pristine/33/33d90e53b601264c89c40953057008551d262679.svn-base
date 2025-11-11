@@ -1,0 +1,39 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using SAMLitigation.Models;
+using SAMLitigation.Services;
+
+namespace SAMLitigation.Controllers
+{
+    public class SAM_Litigation_OnController : Controller
+    {
+        private readonly ILogger<SAM_Litigation_OnController> _logger;
+        private readonly OnService _onService;
+        public SAM_Litigation_OnController(ILogger<SAM_Litigation_OnController> logger, OnService onService)
+        {
+            _logger = logger;
+            _onService = onService;
+        }
+        [HttpGet]
+        public IActionResult Index()
+        {
+            try
+            {
+                List<SAM_Litigation_On> ListOn = _onService.GetOnsALL();
+                ViewBag.Ons = ListOn.Select(x => new SelectListItem
+                {
+                    Value = x.LitigationOnID.ToString(),
+                    Text = x.LitigationOnTypeName
+                }).ToList() ?? new List<SelectListItem>();
+                return View();
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+
+    }
+}
