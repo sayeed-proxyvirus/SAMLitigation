@@ -7,10 +7,10 @@ namespace SAMLitigation.Services.ServiceImple
 {
     public class AuthenticateServiceImple : AuthenticateService
     {
-        private readonly AppDbContext _context;
+        private readonly SAMDbContext _context;
         private readonly UserTableService _userTableService;
 
-        public AuthenticateServiceImple(AppDbContext context, UserTableService userTableService)
+        public AuthenticateServiceImple(SAMDbContext context, UserTableService userTableService)
         {
             _context = context;
             _userTableService = userTableService;

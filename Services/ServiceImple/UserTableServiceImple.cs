@@ -8,9 +8,9 @@ namespace SAMLitigation.Services.ServiceImple
 {
     public class UserTableServiceImple : UserTableService
     {
-        private readonly AppDbContext _context;
+        private readonly SAMDbContext _context;
 
-        public UserTableServiceImple(AppDbContext context)
+        public UserTableServiceImple(SAMDbContext context)
         {
             _context = context;
         }

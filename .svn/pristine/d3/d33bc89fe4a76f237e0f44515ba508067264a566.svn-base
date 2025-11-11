@@ -4,23 +4,23 @@ using SAMLitigation.Models.ApplicationDbContext;
 
 namespace SAMLitigation.Services.ServiceImple
 {
-    public class OnServiceImple : OnService
+    public class SectorServiceImple : SectorService
     {
-       // private readonly ILogger _logger;
+        //private readonly ILogger _logger;
         private readonly SAMDbContext _context;
-        public OnServiceImple( SAMDbContext context) 
+        public SectorServiceImple(SAMDbContext context)
         {
-           // _logger = logger;
+            //_logger = logger;
             _context = context;
         }
-        public List<SAM_Litigation_On> GetOnsALL()
+        public List<Loan_NC_T_Sector> GetSectorsALL() 
         {
             try
             {
-                var ons = _context.On
-                    .FromSqlRaw("EXEC GetOnsALL")
+                var sector = _context.Sector
+                    .FromSqlRaw("EXEC GetSectorsALL")
                     .ToList();
-                return ons;
+                return sector;
             }
             catch (Exception)
             {
@@ -28,5 +28,6 @@ namespace SAMLitigation.Services.ServiceImple
                 throw;
             }
         }
+
     }
 }
