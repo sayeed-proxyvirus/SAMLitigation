@@ -16,6 +16,8 @@ builder.Services.AddScoped<AuthenticateService, AuthenticateServiceImple>();
 builder.Services.AddScoped<LawyerService, LawyerServiceImple>();
 builder.Services.AddScoped<CourtService, CourtServiceImple>();
 builder.Services.AddScoped<CauseService, CauseServiceImple>();
+builder.Services.AddScoped<OnService, OnServiceImple>();
+builder.Services.AddScoped<TypeService, TypeServiceImple>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

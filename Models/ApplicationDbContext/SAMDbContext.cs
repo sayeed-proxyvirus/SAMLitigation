@@ -15,6 +15,8 @@ namespace SAMLitigation.Models.ApplicationDbContext
         public DbSet<SAM_Litigation_Lawyer> Lawyer { get; set; }
         public DbSet<SAM_Litigation_Court> Court { get; set; }
         public DbSet<SAM_Litigation_Cause> Cause { get; set; }
+        public DbSet<SAM_Litigation_On> On { get; set; }
+        public DbSet<SAM_Litigation_Type> Type { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
