@@ -9,15 +9,16 @@ namespace SAMLitigation.Controllers
     {
         private readonly ILogger<Loan_NC_T_ProjectTypeController> _logger;
         private readonly ProjectTypeService _projectTypeService;
-
+        private readonly SectorService _sectorService; // Add sector service
 
         public Loan_NC_T_ProjectTypeController(
             ILogger<Loan_NC_T_ProjectTypeController> logger,
-            ProjectTypeService projectTypeService)
+            ProjectTypeService projectTypeService,
+            SectorService sectorService) // Inject sector service
         {
             _logger = logger;
             _projectTypeService = projectTypeService;
-
+            _sectorService = sectorService;
         }
 
         [HttpGet]
@@ -32,6 +33,14 @@ namespace SAMLitigation.Controllers
                 {
                     Value = x.Id.ToString(),
                     Text = x.ProjectTypeName
+                }).ToList() ?? new List<SelectListItem>();
+
+                List<Loan_NC_T_Sector> ListSectors = _sectorService.GetSectorsALL();
+
+                ViewBag.Sectors = ListSectors.Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.SectorName
                 }).ToList() ?? new List<SelectListItem>();
 
                 return View(ListProjectType); // Pass the list to the view

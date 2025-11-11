@@ -174,15 +174,24 @@
                             </li>
                             <li>
                                 <a class="nav-link" asp-controller="SAM_Litigation_On" asp-action="Index">
-                                    <i class="bi bi-diamond-half me-2"></i> Case On
+                                    <i class="bi bi-diamond-half me-2"></i> Add On
                                 </a>
                             </li>
                             <li>
                                 <a class="nav-link" asp-controller="SAM_Litigation_Type" asp-action="Index">
-                                    <i class="bi bi-files me-2"></i> Case Type
+                                    <i class="bi bi-files me-2"></i> Add Type
                                 </a>
                             </li>
-                            
+                            <li>
+                                <a class="nav-link" asp-controller="Loan_NC_T_Sector" asp-action="Index">
+                                    <i class="bi bi-file-text me-2"></i> Add Sector
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link" asp-controller="Loan_NC_T_ProjectType" asp-action="Index">
+                                    <i class="bi bi-file-text me-2"></i> Add Project Type
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
