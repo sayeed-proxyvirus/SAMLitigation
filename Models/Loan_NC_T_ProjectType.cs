@@ -10,11 +10,13 @@ namespace SAMLitigation.Models
         //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("Id")]
         public decimal Id { get; set; }
+
         [Column("ProjectTypeName")]
         public string ProjectTypeName { get; set; }
+
         [Column("SectorId")]
-        [ForeignKey("SectorId")]
         public decimal SectorId { get; set; }
+
         public virtual Loan_NC_T_Sector Sector { get; set; }
     }
 }

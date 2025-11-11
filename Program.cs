@@ -21,6 +21,7 @@ builder.Services.AddScoped<OnService, OnServiceImple>();
 builder.Services.AddScoped<StatusService, StatusServiceImple>();
 builder.Services.AddScoped<TypeService, TypeServiceImple>();
 builder.Services.AddScoped<SectorService, SectorServiceImple>();
+builder.Services.AddScoped<ProjectTypeService, ProjectTypeServiceImple>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

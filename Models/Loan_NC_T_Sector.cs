@@ -10,8 +10,11 @@ namespace SAMLitigation.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("Id")]
         public decimal Id { get; set; }
+        
         [Column("SectorName")]
+
         public string SectorName { get; set; }
+
         public virtual ICollection<Loan_NC_T_ProjectType> ProjectTypes { get; set; }
     }
 }

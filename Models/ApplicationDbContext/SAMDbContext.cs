@@ -1,15 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SAMLitigation.Models.ViewModel;
-
 namespace SAMLitigation.Models.ApplicationDbContext
 {
-    public class SAMDbContext:DbContext
+    public class SAMDbContext : DbContext
     {
-        public SAMDbContext(DbContextOptions<SAMDbContext> options): base(options)
+        public SAMDbContext(DbContextOptions<SAMDbContext> options) : base(options)
         {
-            
-        }
 
+        }
         public DbSet<UserTable> UsersTable { get; set; }
         public DbSet<UserRoleRelationViewModel> UserRoleViewModel { get; set; }
         public DbSet<SAM_Litigation_Lawyer> Lawyer { get; set; }
@@ -19,18 +17,29 @@ namespace SAMLitigation.Models.ApplicationDbContext
         public DbSet<SAM_Litigation_On> On { get; set; }
         public DbSet<SAM_Litigation_Type> Type { get; set; }
         public DbSet<Loan_NC_T_Sector> Sector { get; set; }
+        public DbSet<Loan_NC_T_ProjectType> ProjectType { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<UserRoleRelationViewModel>().HasNoKey();
+
+            // Configure Sector entity
+            modelBuilder.Entity<Loan_NC_T_Sector>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.SectorName).HasMaxLength(100);
+            });
+
+            // Configure ProjectType entity with foreign key relationship
             modelBuilder.Entity<Loan_NC_T_ProjectType>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.ProjectTypeName).IsRequired().HasMaxLength(100);
+
                 entity.HasOne(e => e.Sector)
-                    .WithMany(s => s.Sectors)
+                    .WithMany(s => s.ProjectTypes)
                     .HasForeignKey(e => e.SectorId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
