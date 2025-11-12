@@ -1,10 +1,11 @@
 ﻿using SAMLitigation.Models;
+using SAMLitigation.Models.ViewModel;
 
 namespace SAMLitigation.Services
 {
     public interface LitigationPartyService
     {
         public bool Add(SAM_Litigation_Party sAM_Litigation_Party);
-        public List<SAM_Litigation_Party> GetAll();
+        public List<SAM_Litigation_PartyViewModel> GetAll();
     }
 }

@@ -22,7 +22,7 @@ namespace SAMLitigation.Controllers
         {
             try
             {
-                List<SAM_Litigation_Party> ListParty = _liigationPartyService.GetAll();
+                List<SAM_Litigation_PartyViewModel> ListParty = _liigationPartyService.GetAll();
 
                 List<LoanNCPaperProcessingProjectViewModel> ListProject = _loanProjectService.GetALl();
                 ViewBag.ListProjects = ListProject.Select(x => new SelectListItem

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SAMLitigation.Models;
 using SAMLitigation.Models.ApplicationDbContext;
+using SAMLitigation.Models.ViewModel;
 
 namespace SAMLitigation.Services.ServiceImple
 {
@@ -27,11 +28,11 @@ namespace SAMLitigation.Services.ServiceImple
             }
         }
 
-        public List<SAM_Litigation_Party> GetAll()
+        public List<SAM_Litigation_PartyViewModel> GetAll()
         {
             try
             {
-                var litigationPartyList= _context.LitigationParty
+                var litigationPartyList= _context.LitigationPartyViewModel
                     .FromSqlRaw("EXEC GetLitigationPartyAll")
                     .ToList();
                 return litigationPartyList;

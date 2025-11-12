@@ -1,4 +1,4 @@
-﻿@model List<SAMLitigation.Models.SAM_Litigation_Party>
+﻿@model List<SAMLitigation.Models.ViewModel.SAM_Litigation_PartyViewModel>
 
 @{
     ViewData["Title"] = "Litigation Party Management";
@@ -69,7 +69,7 @@
                 <thead>
                     <tr>
                         <th>Party Name</th>
-                        <th>Project ID</th>
+                        <th>Project Name</th>
                         <th>Is IDCOL</th>
                         <th>Is Company</th>
                     </tr>
@@ -81,7 +81,7 @@
                         {
                             <tr>
                                 <td>@party.LitigationParty</td>
-                                <td>@party.ProjectID</td>
+                                <td>@party.ProjectName</td>
                                 <td>@(party.IsIDCOL ? "Yes" : "No")</td>
                                 <td>@(party.IsCompany ? "Yes" : "No")</td>
                             </tr>

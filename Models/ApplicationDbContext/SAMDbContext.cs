@@ -12,6 +12,7 @@ namespace SAMLitigation.Models.ApplicationDbContext
         public DbSet<UserRoleRelationViewModel> UserRoleViewModel { get; set; }
         public DbSet<DashboardViewModel> DashboardViewModels { get; set; }
         public DbSet<LoanNCPaperProcessingProjectViewModel> ProjectViewModel { get; set; }
+        public DbSet<SAM_Litigation_PartyViewModel> LitigationPartyViewModel { get; set; }
         public DbSet<SAM_Litigation_Lawyer> Lawyer { get; set; }
         public DbSet<SAM_Litigation_Court> Court { get; set; }
         public DbSet<SAM_Litigation_Master> LitigationMaster { get; set; }
@@ -33,6 +34,7 @@ namespace SAMLitigation.Models.ApplicationDbContext
             modelBuilder.Entity<DashboardViewModel>().HasNoKey();
 
             modelBuilder.Entity<LoanNCPaperProcessingProjectViewModel>().HasNoKey();
+            modelBuilder.Entity<SAM_Litigation_PartyViewModel>().HasNoKey();
 
 
 
