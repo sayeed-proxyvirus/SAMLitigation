@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SAMLitigation.Models;
-using SAMLitigation.Models.ViewModel;
 using SAMLitigation.Services;
 
 namespace SAMLitigation.Controllers
@@ -10,12 +9,12 @@ namespace SAMLitigation.Controllers
     {
         private readonly ILogger<SAM_Litigation_PartyController> _logger;
         private readonly LitigationPartyService _liigationPartyService;
-        private readonly LoanProjectService _loanProjectService;
-        public SAM_Litigation_PartyController(ILogger<SAM_Litigation_PartyController> logger, LitigationPartyService partyService, LoanProjectService loanProjectService) 
+        private readonly ProjectTypeService _projectTypeService;
+        public SAM_Litigation_PartyController(ILogger<SAM_Litigation_PartyController> logger, LitigationPartyService partyService, ProjectTypeService projectTypeService) 
         {
             _logger = logger;
             _liigationPartyService = partyService;
-            _loanProjectService = loanProjectService;
+            _projectTypeService = projectTypeService;
         }
         [HttpGet]
         public IActionResult Index()
@@ -24,11 +23,11 @@ namespace SAMLitigation.Controllers
             {
                 List<SAM_Litigation_Party> ListParty = _liigationPartyService.GetAll();
 
-                List<LoanNCPaperProcessingProjectViewModel> ListProject = _loanProjectService.GetALl();
+                List<Loan_NC_T_ProjectType> ListProject = _projectTypeService.GetProjectTypeALL();
                 ViewBag.ListProjects = ListProject.Select(x => new SelectListItem
                 {
-                    Value = x.ProjectID.ToString(),
-                    Text = x.ProjectName
+                    Value = x.Id.ToString(),
+                    Text = x.ProjectTypeName
                 }).ToList() ?? new List<SelectListItem>();
 
                 return View(ListParty);
