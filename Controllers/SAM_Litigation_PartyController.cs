@@ -1,0 +1,87 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using SAMLitigation.Models;
+using SAMLitigation.Services;
+
+namespace SAMLitigation.Controllers
+{
+    public class SAM_Litigation_PartyController : Controller
+    {
+        private readonly ILogger<SAM_Litigation_PartyController> _logger;
+        private readonly LitigationPartyService _liigationPartyService;
+        private readonly ProjectTypeService _projectTypeService;
+        public SAM_Litigation_PartyController(ILogger<SAM_Litigation_PartyController> logger, LitigationPartyService partyService, ProjectTypeService projectTypeService) 
+        {
+            _logger = logger;
+            _liigationPartyService = partyService;
+            _projectTypeService = projectTypeService;
+        }
+        [HttpGet]
+        public IActionResult Index()
+        {
+            try
+            {
+                List<SAM_Litigation_Party> ListParty = _liigationPartyService.GetAll();
+
+                List<Loan_NC_T_ProjectType> ListProject = _projectTypeService.GetProjectTypeALL();
+                ViewBag.ListProjects = ListProject.Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.ProjectTypeName
+                }).ToList() ?? new List<SelectListItem>();
+
+                return View(ListParty);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        [HttpPost]
+        public IActionResult AddParty(string litigationparty,decimal projectID, bool isIDCOL, bool isCompany) 
+        {
+            try
+            {
+                var Party = new SAM_Litigation_Party
+                {
+                    LitigationParty = litigationparty,
+                    ProjectID = projectID,
+                    IsIDCOL = isIDCOL,
+                    IsCompany = isCompany
+                };
+                bool success = _liigationPartyService.Add(Party);
+                if (success)
+                {
+                    _logger.LogInformation("Party is added successfully");
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Party '{litigationparty}' has been added successfully!"
+                    });
+                }
+                else
+                {
+                    _logger.LogWarning("Party data addition has been failed");
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Failed to add party. Please try again."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception in Add: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError($"Inner Exception: {ex.InnerException.Message}");
+                }
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred: " + ex.Message
+                });
+            }
+        }
+    }
+}

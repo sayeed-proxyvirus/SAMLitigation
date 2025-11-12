@@ -182,11 +182,6 @@
                                     <i class="bi bi-files me-2"></i> Case Type
                                 </a>
                             </li>
-                            <li>
-                                <a class="nav-link" asp-controller="SAM_Litigation_Party" asp-action="Index">
-                                    <i class="bi bi-files me-2"></i> Litigation Party
-                                </a>
-                            </li>
                             
                         </ul>
                     </li>

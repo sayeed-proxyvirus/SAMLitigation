@@ -12,9 +12,7 @@ namespace SAMLitigation.Models
         public decimal Id { get; set; }
         
         [Column("SectorName")]
-
         public string SectorName { get; set; }
 
-        public virtual ICollection<Loan_NC_T_ProjectType> ProjectTypes { get; set; }
     }
 }

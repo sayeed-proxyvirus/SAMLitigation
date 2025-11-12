@@ -1,0 +1,24 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace SAMLitigation.Models
+{
+   
+    [Table("SAM_Litigation_Party")]
+    public class SAM_Litigation_Party
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public decimal LitigationPartyID { get; set; }
+        public string? LitigationParty { get; set; }
+        public decimal ProjectID { get; set; }
+        public Boolean IsIDCOL { get; set; }
+        public Boolean IsCompany { get; set; }
+        //Needed??
+        public DateTime CreatedOn { get; set; }
+        public DateTime ModifiedOn { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? ModifiedBy { get; set; }
+
+    }
+}

@@ -1,0 +1,6 @@
+﻿namespace SAMLitigation.Models
+{
+    public class SAM_Litigation_Master
+    {
+    }
+}

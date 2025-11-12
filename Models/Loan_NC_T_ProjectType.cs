@@ -14,9 +14,5 @@ namespace SAMLitigation.Models
         [Column("ProjectTypeName")]
         public string ProjectTypeName { get; set; }
 
-        [Column("SectorId")]
-        public decimal SectorId { get; set; }
-
-        public virtual Loan_NC_T_Sector Sector { get; set; }
     }
 }

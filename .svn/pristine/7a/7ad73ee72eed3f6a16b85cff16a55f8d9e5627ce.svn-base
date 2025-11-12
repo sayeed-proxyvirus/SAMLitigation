@@ -1,0 +1,6 @@
+﻿namespace SAMLitigation.Services
+{
+    public interface LitigationMasterService
+    {
+    }
+}
