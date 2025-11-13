@@ -158,11 +158,6 @@
                         </a>
                         <ul class="collapse nav flex-column ms-3" id="setupSubmenu">
                             <li>
-                                <a class="nav-link" asp-controller="SAM_Litigation_Action" asp-action="Index">
-                                    <i class="bi bi-files me-2"></i> Litigation Actions
-                                </a>
-                            </li>
-                            <li>
                                 <a class="nav-link" asp-controller="SAM_Litigation_Court" asp-action="Index">
                                     <i class="bi bi-file-earmark-text me-2"></i> Add Court
                                 </a>

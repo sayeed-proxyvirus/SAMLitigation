@@ -1,0 +1,134 @@
+﻿@model List<SAMLitigation.Models.ViewModel.SAM_Litigation_PartyViewModel>
+
+@{
+    ViewData["Title"] = "Litigation Party Management";
+}
+
+<div class="container mt-4">
+    <h2>Litigation Party Management</h2>
+
+    <!-- Add Party Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Add New Party</h5>
+        </div>
+        <div class="card-body">
+            <form id="addPartyForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="litigationparty">Litigation Party Name</label>
+                            <input type="text" class="form-control" id="litigationparty" name="litigationparty" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="projectID">Project Type</label>
+                            <select class="form-control" id="projectID" name="projectID" required>
+                                <option value="">-- Select Project Type --</option>
+                                @foreach (var project in ViewBag.ListProjects as List<SelectListItem>)
+                                {
+                                    <option value="@project.Value">@project.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="isIDCOL" name="isIDCOL">
+                            <label class="form-check-label" for="isIDCOL">
+                                Is IDCOL
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="isCompany" name="isCompany">
+                            <label class="form-check-label" for="isCompany">
+                                Is Company
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Add Party</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Parties List -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Existing Parties</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Party Name</th>
+                        <th>Project Name</th>
+                        <th>Is IDCOL</th>
+                        <th>Is Company</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var party in Model)
+                        {
+                            <tr>
+                                <td>@party.LitigationParty</td>
+                                <td>@party.ProjectName</td>
+                                <td>@(party.IsIDCOL ? "Yes" : "No")</td>
+                                <td>@(party.IsCompany ? "Yes" : "No")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center">No parties found</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#addPartyForm').on('submit', function(e) {
+                e.preventDefault();
+
+                var formData = {
+                    litigationparty: $('#litigationparty').val(),
+                    projectID: $('#projectID').val(),
+                    isIDCOL: $('#isIDCOL').is(':checked'),
+                    isCompany: $('#isCompany').is(':checked')
+                };
+
+                $.ajax({
+                    url: '@Url.Action("AddParty", "SAM_Litigation_Party")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload(); // Reload to show the new party
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('An error occurred: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+}

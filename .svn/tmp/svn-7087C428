@@ -11,7 +11,6 @@ namespace SAMLitigation.Models.ApplicationDbContext
         public DbSet<UserTable> UsersTable { get; set; }
         public DbSet<UserRoleRelationViewModel> UserRoleViewModel { get; set; }
         public DbSet<DashboardViewModel> DashboardViewModels { get; set; }
-        public DbSet<LitigationMasterViewModel> LitigationMasterViewModel { get; set; }
         public DbSet<LoanNCPaperProcessingProjectViewModel> ProjectViewModel { get; set; }
         public DbSet<SAM_Litigation_PartyViewModel> LitigationPartyViewModel { get; set; }
         public DbSet<SAM_Litigation_DetailsViewModel> LitigationDetailsViewModel { get; set; }
@@ -23,7 +22,6 @@ namespace SAMLitigation.Models.ApplicationDbContext
         public DbSet<SAM_Litigation_On> On { get; set; }
         public DbSet<SAM_Litigation_Type> Type { get; set; }
         public DbSet<SAM_Litigation_Party> LitigationParty { get; set; }
-        public DbSet<SAM_Litigation_Action> LitigationAction { get; set; }
         public DbSet<Loan_NC_T_Sector> Sector { get; set; }
         public DbSet<Loan_NC_T_ProjectType> ProjectType { get; set; }
         public DbSet<Loan_NC_PaperProcessing_Cycle> PaperProcessing_Cycles { get; set; }
@@ -38,13 +36,7 @@ namespace SAMLitigation.Models.ApplicationDbContext
             modelBuilder.Entity<DashboardViewModel>().HasNoKey();
             modelBuilder.Entity<SAM_Litigation_DetailsViewModel>().HasNoKey();
             modelBuilder.Entity<LoanNCPaperProcessingProjectViewModel>().HasNoKey();
-
-            modelBuilder.Entity<LitigationMasterViewModel>().HasNoKey();
-            
-
-
             modelBuilder.Entity<SAM_Litigation_PartyViewModel>().HasNoKey();
-
 
 
 

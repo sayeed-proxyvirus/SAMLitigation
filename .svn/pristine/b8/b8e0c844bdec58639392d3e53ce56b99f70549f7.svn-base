@@ -1,0 +1,460 @@
+﻿@model List<SAMLitigation.Models.ViewModel.SAM_Litigation_DetailsViewModel>
+
+@{
+    ViewData["Title"] = "Litigation Details Management";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Litigation Details Management</h2>
+        </div>
+    </div>
+
+    <!-- Add Details Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Add New Litigation Detail</h5>
+                </div>
+                <div class="card-body">
+                    <form id="addDetailsForm">
+                        <!-- Row 1: Litigation ID and Action -->
+                        <div class="row">
+                            <div class="col-md-6 col-lg-3">
+                                <div class="form-group mb-3">
+                                    <label for="litigationID" class="form-label">Litigation ID <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.01" class="form-control" id="litigationID" name="litigationID" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3">
+                                <div class="form-group mb-3">
+                                    <label for="litigationActionID" class="form-label">Action <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="litigationActionID" name="litigationActionID" required>
+                                        <option value="">-- Select Action --</option>
+                                        @foreach (var action in ViewBag.ListActions as List<SelectListItem>)
+                                        {
+                                            <option value="@action.Value">@action.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3">
+                                <div class="form-group mb-3">
+                                    <label for="actionTakenDate" class="form-label">Action Date <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="actionTakenDate" name="actionTakenDate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3">
+                                <div class="form-group mb-3">
+                                    <label for="caseNumber" class="form-label">Case Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="caseNumber" name="caseNumber" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Court and Lawyer -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="litigationCourtID" class="form-label">Court <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="litigationCourtID" name="litigationCourtID" required>
+                                        <option value="">-- Select Court --</option>
+                                        @foreach (var court in ViewBag.ListCourts as List<SelectListItem>)
+                                        {
+                                            <option value="@court.Value">@court.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="litigationLawyerID" class="form-label">Lawyer <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="litigationLawyerID" name="litigationLawyerID" required>
+                                        <option value="">-- Select Lawyer --</option>
+                                        @foreach (var lawyer in ViewBag.ListLawyers as List<SelectListItem>)
+                                        {
+                                            <option value="@lawyer.Value">@lawyer.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Comments -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="commentsPriorAction" class="form-label">Comments Prior Action</label>
+                                    <textarea class="form-control" id="commentsPriorAction" name="commentsPriorAction" rows="3" placeholder="Enter comments before action"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="commentsPostAction" class="form-label">Comments Post Action</label>
+                                    <textarea class="form-control" id="commentsPostAction" name="commentsPostAction" rows="3" placeholder="Enter comments after action"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Maker and Checker -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="makerUserID" class="form-label">Maker User ID <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.01" class="form-control" id="makerUserID" name="makerUserID" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="checkerUserID" class="form-label">Checker User ID <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.01" class="form-control" id="checkerUserID" name="checkerUserID" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Add Litigation Detail
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details List Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Existing Litigation Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered" id="detailsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Litigation ID</th>
+                                    <th>Action Name</th>
+                                    <th>Action Date</th>
+                                    <th>Case Number</th>
+                                    <th>Court</th>
+                                    <th>Lawyer</th>
+                                    <th>Prior Comments</th>
+                                    <th>Post Comments</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    @foreach (var detail in Model)
+                                    {
+                                        <tr>
+                                            <td>@detail.LitigationID</td>
+                                            <td>@detail.LitigationActionName</td>
+                                            <td>@detail.ActionTakenDate.ToString("yyyy-MM-dd")</td>
+                                            <td>@detail.CaseNumber</td>
+                                            <td>@detail.CourtName</td>
+                                            <td>@detail.LawyerName</td>
+                                            <td>@(string.IsNullOrEmpty(detail.CommentsPriorAction) ? "-" : detail.CommentsPriorAction)</td>
+                                            <td>@(string.IsNullOrEmpty(detail.CommentsPostAction) ? "-" : detail.CommentsPostAction)</td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-warning edit-btn"
+                                                        data-id="@detail.LitigationDetailID"
+                                                        title="Edit Detail">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted">No litigation details found</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="fas fa-edit"></i> Edit Litigation Detail
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editDetailsForm">
+                    <input type="hidden" id="edit_litigationDetailID" name="litigationDetailID">
+
+                    <!-- Row 1: Litigation ID and Action -->
+                    <div class="row">
+                        <div class="col-md-6 col-lg-3">
+                            <div class="form-group mb-3">
+                                <label for="edit_litigationID" class="form-label">Litigation ID <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" class="form-control" id="edit_litigationID" name="litigationID" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="form-group mb-3">
+                                <label for="edit_litigationActionID" class="form-label">Action <span class="text-danger">*</span></label>
+                                <select class="form-control" id="edit_litigationActionID" name="litigationActionID" required>
+                                    <option value="">-- Select Action --</option>
+                                    @foreach (var action in ViewBag.ListActions as List<SelectListItem>)
+                                    {
+                                        <option value="@action.Value">@action.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="form-group mb-3">
+                                <label for="edit_actionTakenDate" class="form-label">Action Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="edit_actionTakenDate" name="actionTakenDate" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="form-group mb-3">
+                                <label for="edit_caseNumber" class="form-label">Case Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="edit_caseNumber" name="caseNumber" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Court and Lawyer -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="edit_litigationCourtID" class="form-label">Court <span class="text-danger">*</span></label>
+                                <select class="form-control" id="edit_litigationCourtID" name="litigationCourtID" required>
+                                    <option value="">-- Select Court --</option>
+                                    @foreach (var court in ViewBag.ListCourts as List<SelectListItem>)
+                                    {
+                                        <option value="@court.Value">@court.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="edit_litigationLawyerID" class="form-label">Lawyer <span class="text-danger">*</span></label>
+                                <select class="form-control" id="edit_litigationLawyerID" name="litigationLawyerID" required>
+                                    <option value="">-- Select Lawyer --</option>
+                                    @foreach (var lawyer in ViewBag.ListLawyers as List<SelectListItem>)
+                                    {
+                                        <option value="@lawyer.Value">@lawyer.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Comments -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="edit_commentsPriorAction" class="form-label">Comments Prior Action</label>
+                                <textarea class="form-control" id="edit_commentsPriorAction" name="commentsPriorAction" rows="3" placeholder="Enter comments before action"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="edit_commentsPostAction" class="form-label">Comments Post Action</label>
+                                <textarea class="form-control" id="edit_commentsPostAction" name="commentsPostAction" rows="3" placeholder="Enter comments after action"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Maker and Checker -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="edit_makerUserID" class="form-label">Maker User ID <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" class="form-control" id="edit_makerUserID" name="makerUserID" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="edit_checkerUserID" class="form-label">Checker User ID <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" class="form-control" id="edit_checkerUserID" name="checkerUserID" required>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" id="saveChangesBtn">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Add Details Form Submit
+            $('#addDetailsForm').on('submit', function(e) {
+                e.preventDefault();
+
+                var formData = {
+                    litigationID: parseFloat($('#litigationID').val()),
+                    litigationActionID: parseFloat($('#litigationActionID').val()),
+                    actionTakenDate: $('#actionTakenDate').val(),
+                    caseNumber: $('#caseNumber').val(),
+                    commentsPriorAction: $('#commentsPriorAction').val(),
+                    commentsPostAction: $('#commentsPostAction').val(),
+                    litigationCourtID: parseFloat($('#litigationCourtID').val()),
+                    litigationLawyerID: parseFloat($('#litigationLawyerID').val()),
+                    makerUserID: parseFloat($('#makerUserID').val()),
+                    checkerUserID: parseFloat($('#checkerUserID').val())
+                };
+
+                $.ajax({
+                    url: '@Url.Action("AddDetails", "SAM_Litigation_Details")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('An error occurred: ' + error);
+                    }
+                });
+            });
+
+            // Edit Button Click - Fetch full detail data
+            $('.edit-btn').on('click', function() {
+                var detailId = $(this).data('id');
+
+                $.ajax({
+                    url: '@Url.Action("GetDetailById", "SAM_Litigation_Details")',
+                    type: 'GET',
+                    data: { id: detailId },
+                    success: function(response) {
+                        console.log('Response:', response); // Debug log
+
+                        // Check if response has success property and it's false (error response)
+                        if (response.success === false) {
+                            alert(response.message || 'Failed to load detail data');
+                            return;
+                        }
+
+                        // Check if we have the required data
+                        if (response.litigationDetailID) {
+                            // Populate basic fields
+                            $('#edit_litigationDetailID').val(response.litigationDetailID);
+                            $('#edit_litigationID').val(response.litigationID);
+                            $('#edit_actionTakenDate').val(response.actionTakenDate);
+                            $('#edit_caseNumber').val(response.caseNumber);
+                            $('#edit_commentsPriorAction').val(response.commentsPriorAction || '');
+                            $('#edit_commentsPostAction').val(response.commentsPostAction || '');
+
+
+                            $('#edit_litigationActionID option').filter(function() {
+                                return $(this).text() === response.litigationActionName;
+                            }).prop('selected', true);
+
+                            // Set Court dropdown by matching text
+                            $('#edit_litigationCourtID option').filter(function() {
+                                return $(this).text() === response.courtName;
+                            }).prop('selected', true);
+
+                            // Set Lawyer dropdown by matching text
+                            $('#edit_litigationLawyerID option').filter(function() {
+                                return $(this).text() === response.lawyerName;
+                            }).prop('selected', true);
+
+                            $('#edit_makerUserID').val(1); // Default value - adjust as needed
+                            $('#edit_checkerUserID').val(1); // Default value - adjust as needed
+
+                            // Show the modal
+                            $('#editModal').modal('show');
+                        } else {
+                            alert('Invalid data received from server');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', xhr.responseText); // Debug log
+                        alert('An error occurred while loading data: ' + error);
+                    }
+                });
+            });
+
+            // Save Changes Button Click - Update Details
+            $('#saveChangesBtn').on('click', function() {
+                // Validate the form
+                if (!$('#editDetailsForm')[0].checkValidity()) {
+                    $('#editDetailsForm')[0].reportValidity();
+                    return;
+                }
+
+                var formData = {
+                    litigationDetailID: parseFloat($('#edit_litigationDetailID').val()),
+                    litigationID: parseFloat($('#edit_litigationID').val()),
+                    litigationActionID: parseFloat($('#edit_litigationActionID').val()),
+                    actionTakenDate: $('#edit_actionTakenDate').val(),
+                    caseNumber: $('#edit_caseNumber').val(),
+                    commentsPriorAction: $('#edit_commentsPriorAction').val(),
+                    commentsPostAction: $('#edit_commentsPostAction').val(),
+                    litigationCourtID: parseFloat($('#edit_litigationCourtID').val()),
+                    litigationLawyerID: parseFloat($('#edit_litigationLawyerID').val()),
+                    makerUserID: parseFloat($('#edit_makerUserID').val()),
+                    checkerUserID: parseFloat($('#edit_checkerUserID').val())
+                };
+
+
+
+                $.ajax({
+                    url: '@Url.Action("UpdateDetails", "SAM_Litigation_Details")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#editModal').modal('hide');
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Update Error:', xhr.responseText); 
+                        alert('An error occurred: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+}

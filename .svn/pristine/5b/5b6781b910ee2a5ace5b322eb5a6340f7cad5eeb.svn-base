@@ -1,0 +1,15 @@
+﻿namespace SAMLitigation.Models.ViewModel
+{
+    public class LitigationMasterViewModel
+    {
+        public decimal LitigationID { get; set; }
+        public string? ProjectName { get; set; }
+        public string? InitialCaseNumber { get; set; }
+        public string? LitigationTypeName { get; set; }
+        public string? CauseName { get; set;}
+        public string? Complainant { get; set; }
+        public string? Defendant { get; set; }
+        public string? LitigationStatusName { get; set; }
+
+    }
+}

@@ -28,12 +28,12 @@ namespace SAMLitigation.Services.ServiceImple
             }
         }
 
-        public List<SAM_Litigation_PartyViewModel> GetPartyAllEX()
+        public List<SAM_Litigation_Party> GetAll()
         {
             try
             {
-                var litigationPartyList= _context.LitigationPartyViewModel
-                    .FromSqlRaw("EXEC GetPartyAllEX")
+                var litigationPartyList= _context.LitigationParty
+                    .FromSqlRaw("EXEC GetPartyAll")
                     .ToList();
                 return litigationPartyList;
             } 

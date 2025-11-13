@@ -75,7 +75,7 @@ namespace SAMLitigation.Controllers
             ViewBag.LitigationTypeList = new SelectList(_typeService.GetTypesALL(), "LitigationTypeID", "LitigationTypeName");
             ViewBag.StatusList = new SelectList(_statusService.GetStatusALL(), "LitigationStatusId", "LitigationStatusName");
             ViewBag.CauseList = new SelectList(_causeService.GetCauses(), "LitigationCauseID", "CauseName");
-            ViewBag.PartyList = new SelectList(_litigationPartyService.GetPartyAllEX(), "LitigationPartyID", "LitigationParty");
+            ViewBag.PartyList = new SelectList(_litigationPartyService.GetAll(), "LitigationPartyID", "LitigationParty");
         }
 
     }

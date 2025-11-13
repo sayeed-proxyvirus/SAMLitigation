@@ -1,0 +1,246 @@
+﻿@model List<SAMLitigation.Models.SAM_Litigation_Action>
+
+@{
+    ViewData["Title"] = "Action Management";
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Action Management</h2>
+</div>
+
+<!-- Add Action Card Form -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Action</h5>
+    </div>
+    <div class="card-body">
+        <form id="addActionForm">
+            <div class="row g-3">
+                <!-- Action Name -->
+                <div class="col-md-8">
+                    <label for="ActionName" class="form-label">Action Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="ActionName" name="ActionName" required>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-save me-2"></i>Save Action
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-undo me-2"></i>Reset
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Actions DataTable Card -->
+<div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Actions List</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="actionsTable" class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Action Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        @foreach (var action in Model)
+                        {
+                            <tr>
+                                <td>@action.LitigationActionID</td>
+                                <td>@action.LitigationActionName</td>
+                                <td>
+                                    <button class="btn btn-sm btn-warning"
+                                            onclick="editAction('@action.LitigationActionID', '@Html.Raw(System.Text.Json.JsonSerializer.Serialize(action.LitigationActionName))')"
+                                            title="Edit Action">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">No actions found</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Action Modal -->
+<div class="modal fade" id="editActionModal" tabindex="-1" aria-labelledby="editActionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="editActionModalLabel">
+                    <i class="fas fa-edit me-2"></i>Edit Action
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editActionForm">
+                    <input type="hidden" id="editActionId" name="ActionId">
+                    <div class="mb-3">
+                        <label for="editActionName" class="form-label">Action Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editActionName" name="ActionName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-warning" onclick="updateAction()">
+                    <i class="fas fa-save me-2"></i>Update Action
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- DataTables CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTable
+            if ($.fn.DataTable.isDataTable('#actionsTable')) {
+                $('#actionsTable').DataTable().destroy();
+            }
+            $('#actionsTable').DataTable({
+                "pageLength": 10,
+                "order": [[0, "desc"]],
+                "searching": true,
+                "lengthChange": true,
+                "language": {
+                    "emptyTable": "No actions found"
+                }
+            });
+
+            // Handle add action form submission
+            $('#addActionForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var actionName = $('#ActionName').val().trim();
+
+                if (!actionName) {
+                    alert('Please enter action name');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("AddAction", "SAM_Litigation_Action")',
+                    type: 'POST',
+                    data: { actionName: actionName },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#addActionForm')[0].reset();
+                            location.reload(); // Reload page to get fresh data
+                        } else {
+                            alert(response.message || 'Failed to add action');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error adding action:', error);
+                        alert('Error adding action: ' + error);
+                    }
+                });
+            });
+        });
+
+        // Edit action function - opens modal
+        function editAction(id, name) {
+            // Parse the JSON-encoded name
+            var actionName = JSON.parse(name);
+            $('#editActionId').val(id);
+            $('#editActionName').val(actionName);
+            $('#editActionModal').modal('show');
+        }
+
+        // Update action function
+        function updateAction() {
+            var actionId = $('#editActionId').val();
+            var actionName = $('#editActionName').val().trim();
+
+            if (!actionName) {
+                alert('Please enter action name');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("UpdateAction", "SAM_Litigation_Action")',
+                type: 'POST',
+                data: {
+                    actionId: actionId,
+                    actionName: actionName
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        $('#editActionModal').modal('hide');
+                        location.reload(); // Reload page to get fresh data
+                    } else {
+                        alert(response.message || 'Failed to update action');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error updating action:', error);
+                    alert('Error updating action: ' + error);
+                }
+            });
+        }
+    </script>
+}
+
+<style>
+    .card {
+        border: none;
+        border-radius: 8px;
+    }
+
+    .card-header {
+        border-radius: 8px 8px 0 0 !important;
+        padding: 1rem 1.5rem;
+    }
+
+    .table-responsive {
+        border-radius: 4px;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .btn {
+        border-radius: 4px;
+    }
+
+    .modal-content {
+        border-radius: 8px;
+    }
+
+    .modal-header {
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+</style>
