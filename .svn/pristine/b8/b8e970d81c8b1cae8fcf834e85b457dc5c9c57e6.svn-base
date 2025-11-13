@@ -19,10 +19,10 @@
                     <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Add New Litigation Detail</h5>
                 </div>
                 <div class="card-body">
-                    <form id="addDetailsForm" onsubmit="handleAddDetails(event)">
+                    <form id="addDetailsForm">
                         <!-- Row 1: Litigation ID and Action -->
                         <div class="row">
-
+                            
                             <div class="col-md-6 col-lg-3">
                                 <div class="form-group mb-3">
                                     <label for="litigationActionID" class="form-label">Action <span class="text-danger">*</span></label>
@@ -93,13 +93,15 @@
                             </div>
                         </div>
 
+
+
                         <!-- Submit Button -->
                         <div class="row">
                             <div class="col-12">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save"></i> Add Litigation Detail
                                 </button>
-                                <button type="reset" class="btn btn-secondary" onclick="handleResetForm()">
+                                <button type="reset" class="btn btn-secondary">
                                     <i class="fas fa-undo"></i> Reset
                                 </button>
                             </div>
@@ -148,15 +150,10 @@
                                             <td>@(string.IsNullOrEmpty(detail.CommentsPriorAction) ? "-" : detail.CommentsPriorAction)</td>
                                             <td>@(string.IsNullOrEmpty(detail.CommentsPostAction) ? "-" : detail.CommentsPostAction)</td>
                                             <td class="text-center">
-                                                <button class="btn btn-sm btn-warning"
-                                                        onclick="handleEditDetail(@detail.LitigationDetailID)"
+                                                <button class="btn btn-sm btn-warning edit-btn"
+                                                        data-id="@detail.LitigationDetailID"
                                                         title="Edit Detail">
                                                     <i class="fas fa-edit"></i> Edit
-                                                </button>
-                                                <button class="btn btn-sm btn-secondary"
-                                                        onclick="viewDocument(@detail.LitigationDetailID)"
-                                                        title="Add/Edit Detail Documents">
-                                                    <i class="fas fa-edit"></i> Add/Edit Detail Documents
                                                 </button>
                                             </td>
                                         </tr>
@@ -289,10 +286,10 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="handleCloseModal()">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     <i class="fas fa-times"></i> Close
                 </button>
-                <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">
+                <button type="button" class="btn btn-primary" id="saveChangesBtn">
                     <i class="fas fa-save"></i> Save Changes
                 </button>
             </div>
@@ -302,159 +299,143 @@
 
 @section Scripts {
     <script>
-        // Function to handle adding new litigation details
-        function handleAddDetails(event) {
-            event.preventDefault();
+        $(document).ready(function() {
+            // Add Details Form Submit
+            $('#addDetailsForm').on('submit', function(e) {
+                e.preventDefault();
 
-            var formData = {
-                litigationID: parseFloat($('#litigationID').val()),
-                litigationActionID: parseFloat($('#litigationActionID').val()),
-                actionTakenDate: $('#actionTakenDate').val(),
-                caseNumber: $('#caseNumber').val(),
-                commentsPriorAction: $('#commentsPriorAction').val(),
-                commentsPostAction: $('#commentsPostAction').val(),
-                litigationCourtID: parseFloat($('#litigationCourtID').val()),
-                litigationLawyerID: parseFloat($('#litigationLawyerID').val()),
-                makerUserID: parseFloat($('#makerUserID').val()),
-                checkerUserID: parseFloat($('#checkerUserID').val())
-            };
+                var formData = {
+                    litigationID: parseFloat($('#litigationID').val()),
+                    litigationActionID: parseFloat($('#litigationActionID').val()),
+                    actionTakenDate: $('#actionTakenDate').val(),
+                    caseNumber: $('#caseNumber').val(),
+                    commentsPriorAction: $('#commentsPriorAction').val(),
+                    commentsPostAction: $('#commentsPostAction').val(),
+                    litigationCourtID: parseFloat($('#litigationCourtID').val()),
+                    litigationLawyerID: parseFloat($('#litigationLawyerID').val()),
+                    makerUserID: parseFloat($('#makerUserID').val()),
+                    checkerUserID: parseFloat($('#checkerUserID').val())
+                };
 
-            $.ajax({
-                url: '@Url.Action("AddDetails", "SAM_Litigation_Details")',
-                type: 'POST',
-                data: formData,
-                success: function(response) {
-                    if (response.success) {
-                        alert(response.message);
-                        location.reload();
-                    } else {
-                        alert(response.message);
+                $.ajax({
+                    url: '@Url.Action("AddDetails", "SAM_Litigation_Details")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('An error occurred: ' + error);
                     }
-                },
-                error: function(xhr, status, error) {
-                    alert('An error occurred: ' + error);
-                }
+                });
             });
-        }
 
-        // Function to handle form reset
-        function handleResetForm() {
-            // Additional custom reset logic can be added here if needed
-            console.log('Form reset');
-        }
+            // Edit Button Click - Fetch full detail data
+            $('.edit-btn').on('click', function() {
+                var detailId = $(this).data('id');
 
-        // Function to handle editing a litigation detail
-        function handleEditDetail(detailId) {
-            $.ajax({
-                url: '@Url.Action("GetDetailById", "SAM_Litigation_Details")',
-                type: 'GET',
-                data: { id: detailId },
-                success: function(response) {
-                    console.log('Response:', response);
+                $.ajax({
+                    url: '@Url.Action("GetDetailById", "SAM_Litigation_Details")',
+                    type: 'GET',
+                    data: { id: detailId },
+                    success: function(response) {
+                        console.log('Response:', response); // Debug log
 
-                    // Check if response has success property and it's false (error response)
-                    if (response.success === false) {
-                        alert(response.message || 'Failed to load detail data');
-                        return;
+                        // Check if response has success property and it's false (error response)
+                        if (response.success === false) {
+                            alert(response.message || 'Failed to load detail data');
+                            return;
+                        }
+
+                        // Check if we have the required data
+                        if (response.litigationDetailID) {
+                            // Populate basic fields
+                            $('#edit_litigationDetailID').val(response.litigationDetailID);
+                            $('#edit_litigationID').val(response.litigationID);
+                            $('#edit_actionTakenDate').val(response.actionTakenDate);
+                            $('#edit_caseNumber').val(response.caseNumber);
+                            $('#edit_commentsPriorAction').val(response.commentsPriorAction || '');
+                            $('#edit_commentsPostAction').val(response.commentsPostAction || '');
+
+
+                            $('#edit_litigationActionID option').filter(function() {
+                                return $(this).text() === response.litigationActionName;
+                            }).prop('selected', true);
+
+                            // Set Court dropdown by matching text
+                            $('#edit_litigationCourtID option').filter(function() {
+                                return $(this).text() === response.courtName;
+                            }).prop('selected', true);
+
+                            // Set Lawyer dropdown by matching text
+                            $('#edit_litigationLawyerID option').filter(function() {
+                                return $(this).text() === response.lawyerName;
+                            }).prop('selected', true);
+
+                            $('#edit_makerUserID').val(1); // Default value - adjust as needed
+                            $('#edit_checkerUserID').val(1); // Default value - adjust as needed
+
+                            // Show the modal
+                            $('#editModal').modal('show');
+                        } else {
+                            alert('Invalid data received from server');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', xhr.responseText); // Debug log
+                        alert('An error occurred while loading data: ' + error);
                     }
-
-                    // Check if we have the required data
-                    if (response.litigationDetailID) {
-                        populateEditForm(response);
-                        $('#editModal').modal('show');
-                    } else {
-                        alert('Invalid data received from server');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('AJAX Error:', xhr.responseText);
-                    alert('An error occurred while loading data: ' + error);
-                }
+                });
             });
-        }
 
-        // Function to populate the edit form with data
-        function populateEditForm(data) {
-            $('#edit_litigationDetailID').val(data.litigationDetailID);
-            $('#edit_litigationID').val(data.litigationID);
-            $('#edit_actionTakenDate').val(data.actionTakenDate);
-            $('#edit_caseNumber').val(data.caseNumber);
-            $('#edit_commentsPriorAction').val(data.commentsPriorAction || '');
-            $('#edit_commentsPostAction').val(data.commentsPostAction || '');
-
-            // Set Action dropdown by matching text
-            $('#edit_litigationActionID option').filter(function() {
-                return $(this).text() === data.litigationActionName;
-            }).prop('selected', true);
-
-            // Set Court dropdown by matching text
-            $('#edit_litigationCourtID option').filter(function() {
-                return $(this).text() === data.courtName;
-            }).prop('selected', true);
-
-            // Set Lawyer dropdown by matching text
-            $('#edit_litigationLawyerID option').filter(function() {
-                return $(this).text() === data.lawyerName;
-            }).prop('selected', true);
-
-            $('#edit_makerUserID').val(1); // Default value - adjust as needed
-            $('#edit_checkerUserID').val(1); // Default value - adjust as needed
-        }
-
-        // Function to handle saving changes to a litigation detail
-        function handleSaveChanges() {
-            // Validate the form
-            if (!$('#editDetailsForm')[0].checkValidity()) {
-                $('#editDetailsForm')[0].reportValidity();
-                return;
-            }
-
-            var formData = {
-                litigationDetailID: parseFloat($('#edit_litigationDetailID').val()),
-                litigationID: parseFloat($('#edit_litigationID').val()),
-                litigationActionID: parseFloat($('#edit_litigationActionID').val()),
-                actionTakenDate: $('#edit_actionTakenDate').val(),
-                caseNumber: $('#edit_caseNumber').val(),
-                commentsPriorAction: $('#edit_commentsPriorAction').val(),
-                commentsPostAction: $('#edit_commentsPostAction').val(),
-                litigationCourtID: parseFloat($('#edit_litigationCourtID').val()),
-                litigationLawyerID: parseFloat($('#edit_litigationLawyerID').val()),
-                makerUserID: parseFloat($('#edit_makerUserID').val()),
-                checkerUserID: parseFloat($('#edit_checkerUserID').val())
-            };
-
-            $.ajax({
-                url: '@Url.Action("UpdateDetails", "SAM_Litigation_Details")',
-                type: 'POST',
-                data: formData,
-                success: function(response) {
-                    if (response.success) {
-                        alert(response.message);
-                        $('#editModal').modal('hide');
-                        location.reload();
-                    } else {
-                        alert(response.message);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Update Error:', xhr.responseText);
-                    alert('An error occurred: ' + error);
+            // Save Changes Button Click - Update Details
+            $('#saveChangesBtn').on('click', function() {
+                // Validate the form
+                if (!$('#editDetailsForm')[0].checkValidity()) {
+                    $('#editDetailsForm')[0].reportValidity();
+                    return;
                 }
-            });
-        }
 
-        // Function to handle closing the modal
-        function handleCloseModal() {
-            $('#editModal').modal('hide');
-        }
-        function viewDocument(LitigationDetailID)
-        {
-            if(!LitigationDetailID)
-            {
-                alert("Invalid Record ID");
-                return;
-            }
-            window.location.href = '@Url.Action("Index", "SAM_Litigation_Details_DocumentList")' + '?id=' + LitigationDetailID;
-        }
+                var formData = {
+                    litigationDetailID: parseFloat($('#edit_litigationDetailID').val()),
+                    litigationID: parseFloat($('#edit_litigationID').val()),
+                    litigationActionID: parseFloat($('#edit_litigationActionID').val()),
+                    actionTakenDate: $('#edit_actionTakenDate').val(),
+                    caseNumber: $('#edit_caseNumber').val(),
+                    commentsPriorAction: $('#edit_commentsPriorAction').val(),
+                    commentsPostAction: $('#edit_commentsPostAction').val(),
+                    litigationCourtID: parseFloat($('#edit_litigationCourtID').val()),
+                    litigationLawyerID: parseFloat($('#edit_litigationLawyerID').val()),
+                    makerUserID: parseFloat($('#edit_makerUserID').val()),
+                    checkerUserID: parseFloat($('#edit_checkerUserID').val())
+                };
+
+
+
+                $.ajax({
+                    url: '@Url.Action("UpdateDetails", "SAM_Litigation_Details")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#editModal').modal('hide');
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Update Error:', xhr.responseText); 
+                        alert('An error occurred: ' + error);
+                    }
+                });
+            });
+        });
     </script>
 }

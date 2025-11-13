@@ -2,42 +2,39 @@
 using Microsoft.EntityFrameworkCore;
 using SAMLitigation.Models;
 using SAMLitigation.Models.ApplicationDbContext;
-using SAMLitigation.Models.ViewModel;
 
 namespace SAMLitigation.Services.ServiceImple
 {
-    public class LitigationDetailServiceImple : LitigationDetailService
+    public class LitigationDetailDocumentListServiceImple : LitigationDetailDocumentListService
     {
         private readonly SAMDbContext _context;
-
-        public LitigationDetailServiceImple(SAMDbContext context)
+        public LitigationDetailDocumentListServiceImple(SAMDbContext context)
         {
             _context = context;
         }
-        public SAM_Litigation_DetailsViewModel GetDetailsALLExById(decimal Id)
+        public SAM_Litigation_Detail_DocumentList GetDetailDocumentListById(decimal Id) 
         {
             try
             {
                 var param = new SqlParameter("@Id", Id);
-                var detail = _context.LitigationDetailsViewModel
-                    .FromSqlRaw("EXEC GetLitigationDetailALLExById @Id", param)
+                var detaildoc = _context.Litigation_Details_DocumentList
+                    .FromSqlRaw("EXEC GetDetailDocumentListById @Id", param)
                     .AsEnumerable()
                     .FirstOrDefault();
-
-                return detail;
+                return detaildoc;
             }
             catch (Exception)
             {
                 throw;
             }
         }
-        public SAM_Litigation_Detail GetDetailByIdForUpdate(decimal Id)
+        public SAM_Litigation_Detail_DocumentList GetDetailDocumentListByIdForUpdate(decimal Id)
         {
             try
             {
-                var detail = _context.Litigation_Details
-                    .FirstOrDefault(l => l.LitigationDetailID == Id);
-                return detail;
+                var detaildoc = _context.Litigation_Details_DocumentList
+                    .FirstOrDefault(l => l.DocumnetListID == Id);
+                return detaildoc;
             }
             catch (Exception)
             {
@@ -45,11 +42,11 @@ namespace SAMLitigation.Services.ServiceImple
             }
         }
 
-        public bool Add(SAM_Litigation_Detail sAM_Litigation_Detail)
+        public bool Add(SAM_Litigation_Detail_DocumentList sAM_Litigation_Detail_DocumentList)
         {
             try
             {
-                _context.Litigation_Details.Add(sAM_Litigation_Detail);
+                _context.Litigation_Details_DocumentList.Add(sAM_Litigation_Detail_DocumentList);
                 int result = _context.SaveChanges();
                 return result > 0;
             }
@@ -59,11 +56,11 @@ namespace SAMLitigation.Services.ServiceImple
             }
         }
 
-        public bool Update(SAM_Litigation_Detail sAM_Litigation_Detail)
+        public bool Update(SAM_Litigation_Detail_DocumentList sAM_Litigation_Detail_DocumentList)
         {
             try
             {
-                _context.Litigation_Details.Update(sAM_Litigation_Detail);
+                _context.Litigation_Details_DocumentList.Update(sAM_Litigation_Detail_DocumentList);
                 int result = _context.SaveChanges();
                 return result > 0;
             }
@@ -72,6 +69,5 @@ namespace SAMLitigation.Services.ServiceImple
                 throw;
             }
         }
-
     }
 }
