@@ -1,0 +1,119 @@
+﻿@model SAMLitigation.Models.ViewModel.SAM_Litigation_DetailsViewModel
+
+<tr class="discussion-row">
+    <td class="text-center">
+        <span class="badge badge-success text-dark">Discussion/Argument</span>
+    </td>
+    <td>
+        <span class="case-badge-success">@Model.CaseNumber</span>
+    </td>
+    <td>@Model.CourtName</td>
+    <td>
+        <i class="fas fa-user-tie text-success"></i> @Model.LawyerName
+    </td>
+    <td class="text-center">
+        @Model.ActionTakenDate.ToString("dd-MMM-yyyy")
+    </td>
+    <td>
+        <div class="comments-section">
+            <strong>Post:</strong>
+            <span class="text-muted">@(string.IsNullOrEmpty(Model.CommentsPostAction) ? "N/A" : Model.CommentsPostAction)</span>
+        </div>
+    </td>
+    <td>
+        <div class="comments-section">
+            <strong>Prior:</strong>
+            <span class="text-muted">@(string.IsNullOrEmpty(Model.CommentsPriorAction) ? "N/A" : Model.CommentsPriorAction)</span>
+        </div>
+    </td>
+    <td class="text-center">
+        <div class="btn-group-vertical action-buttons" role="group">
+            <button type="button"
+                    class="btn btn-warning btn-action mb-1"
+                    onclick="handleEditDetail(@Model.LitigationDetailID)"
+                    title="Edit this hearing detail">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button type="button"
+                    class="btn btn-info btn-action"
+                    onclick="viewDocument(@Model.LitigationDetailID)"
+                    title="View/Add documents for this hearing">
+                <i class="fas fa-file-alt"></i> Documents
+            </button>
+        </div>
+    </td>
+</tr>
+
+<style>
+    .discussion-row {
+        background-color: #e8f5e9;
+        border-left: 5px solid #4caf50;
+        transition: all 0.3s ease;
+    }
+
+        .discussion-row:hover {
+            background-color: #c8e6c9;
+            box-shadow: 0 3px 6px rgba(76, 175, 80, 0.4);
+            transform: translateX(3px);
+        }
+
+    .action-name-discussion {
+        font-weight: 600;
+        color: #388e3c;
+    }
+
+/*     .case-badge-success {
+        background-color: #4caf50;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 4px;
+
+        font-size: 0.9em;
+        }*/
+
+    .action-buttons {
+        width: 100%;
+        min-width: 120px;
+    }
+
+    .btn-action {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+        white-space: nowrap;
+        font-weight: 500;
+        width: 100%;
+        text-align: left;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+        .btn-action i {
+            margin-right: 6px;
+            width: 14px;
+            text-align: center;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-action.btn-warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+            .btn-action.btn-warning:hover {
+                background-color: #ffb300;
+                color: #000;
+            }
+
+        .btn-action.btn-info {
+            background-color: #17a2b8;
+            color: #fff;
+        }
+
+            .btn-action.btn-info:hover {
+                background-color: #138496;
+            }
+</style>
