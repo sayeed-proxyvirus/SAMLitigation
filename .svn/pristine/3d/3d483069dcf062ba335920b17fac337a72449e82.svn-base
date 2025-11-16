@@ -1,0 +1,337 @@
+﻿@model List<SAMLitigation.Models.SAM_Litigation_Detail_DocumentList>
+
+@{
+    ViewData["Title"] = "Litigation Detail Documents Management";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Litigation Detail Documents Management</h2>
+            <p class="text-muted">Managing documents for Litigation Detail ID: <strong>@ViewBag.LitigationDetailID</strong></p>
+        </div>
+    </div>
+
+    <!-- Documents List Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Existing Documents</h5>
+                    <div>
+                        <button class="btn btn-light btn-sm mr-2" onclick="handleAddDocument()">
+                            <i class="fas fa-plus-circle"></i> Add New Document
+                        </button>
+                        <button class="btn btn-outline-light btn-sm" onclick="handleBackToDetails()">
+                            <i class="fas fa-arrow-left"></i> Back to Details
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered" id="documentsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Document ID</th>
+                                    <th>Litigation Detail ID</th>
+                                    <th>Document Name</th>
+                                    <th>Document Link</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    @foreach (var doc in Model)
+                                    {
+                                        <tr>
+                                            <td>@doc.DocumentListID</td>
+                                            <td>@doc.LitigationDetailID</td>
+                                            <td>@doc.DocumentName</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(doc.DocumentLink))
+                                                {
+                                                    <a href="@doc.DocumentLink" target="_blank" class="btn btn-sm btn-link">
+                                                        <i class="fas fa-external-link-alt"></i> View Document
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-warning"
+                                                        onclick="handleEditDetail(@doc.DocumentListID)"
+                                                        title="Edit Document">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No documents found</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Document Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addModalLabel">
+                    <i class="fas fa-plus-circle"></i> Add New Document
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addDocumentForm">
+                    <input type="hidden" id="litigationDetailID" name="litigationDetailID" value="@ViewBag.LitigationDetailID">
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group mb-3">
+                                <label for="documentName" class="form-label">Document Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="documentName" name="documentName" required placeholder="Enter document name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group mb-3">
+                                <label for="documentLink" class="form-label">Document Link <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="documentLink" name="documentLink" required placeholder="Enter document URL or path">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="handleCloseAddModal()">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" onclick="handleSaveNewDocument()">
+                    <i class="fas fa-save"></i> Add Document
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Document Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="fas fa-edit"></i> Edit Document
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editDocumentForm">
+                    <input type="hidden" id="edit_documentListID" name="documentListID">
+                    <input type="hidden" id="edit_litigationDetailID" name="litigationDetailID">
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group mb-3">
+                                <label for="edit_documentName" class="form-label">Document Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="edit_documentName" name="documentName" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group mb-3">
+                                <label for="edit_documentLink" class="form-label">Document Link <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="edit_documentLink" name="documentLink" required>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="handleCloseModal()">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Function to open Add modal
+        function handleAddDocument() {
+            // Reset the form
+            $('#addDocumentForm')[0].reset();
+            // Set the litigation detail ID (it's already in the hidden field from the page load)
+            $('#litigationDetailID').val('@ViewBag.LitigationDetailID');
+            // Show the modal
+            $('#addModal').modal('show');
+        }
+
+        // Function to save new document
+        function handleSaveNewDocument() {
+            // Validate the form
+            if (!$('#addDocumentForm')[0].checkValidity()) {
+                $('#addDocumentForm')[0].reportValidity();
+                return;
+            }
+
+            var litigationDetailID = parseFloat($('#litigationDetailID').val());
+            var documentName = $('#documentName').val();
+            var documentLink = $('#documentLink').val();
+
+            console.log('Adding document:', {
+                litigationDetailID: litigationDetailID,
+                documentName: documentName,
+                documentLink: documentLink
+            });
+
+            var formData = {
+                litigationDetailID: litigationDetailID,
+                documentName: documentName,
+                documentLink: documentLink
+            };
+
+            $.ajax({
+                url: '@Url.Action("AddDetails", "SAM_Litigation_Detail_DocumentList")',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    console.log('Add response:', response);
+                    if (response.success) {
+                        alert(response.message);
+                        $('#addModal').modal('hide');
+                        // Reload the page to show the new document
+                        window.location.reload();
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Add error:', xhr.responseText);
+                    alert('An error occurred: ' + error);
+                }
+            });
+        }
+
+        // Function to close Add modal
+        function handleCloseAddModal() {
+            $('#addModal').modal('hide');
+        }
+
+        // Function to handle back to details
+        function handleBackToDetails() {
+            window.history.back();
+        }
+
+        // Function to handle editing a document
+        function handleEditDetail(documentListId) {
+            console.log('Editing document ID:', documentListId);
+
+            $.ajax({
+                url: '@Url.Action("GetDetailDocById", "SAM_Litigation_Detail_DocumentList")',
+                type: 'GET',
+                data: { id: documentListId },
+                success: function(response) {
+                    console.log('Get response:', response);
+
+                    // Check if response has success property and it's false (error response)
+                    if (response.success === false) {
+                        alert(response.message || 'Failed to load document data');
+                        return;
+                    }
+
+                    // Check if we have the required data
+                    if (response.success === true && response.documentListID) {
+                        populateEditForm(response);
+                        // Use Bootstrap 4 modal show method
+                        $('#editModal').modal('show');
+                    } else {
+                        alert('Invalid data received from server');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                    alert('An error occurred while loading data: ' + error);
+                }
+            });
+        }
+
+        // Function to populate the edit form with data
+        function populateEditForm(data) {
+            console.log('Populating form with:', data);
+            $('#edit_documentListID').val(data.documentListID);
+            $('#edit_litigationDetailID').val(data.litigationDetailID);
+            $('#edit_documentName').val(data.documentName);
+            $('#edit_documentLink').val(data.documentLink);
+        }
+
+        // Function to handle saving changes to a document
+        function handleSaveChanges() {
+            // Validate the form
+            if (!$('#editDocumentForm')[0].checkValidity()) {
+                $('#editDocumentForm')[0].reportValidity();
+                return;
+            }
+
+            var formData = {
+                documentListID: parseFloat($('#edit_documentListID').val()),
+                litigationDetailID: parseFloat($('#edit_litigationDetailID').val()),
+                documentName: $('#edit_documentName').val(),
+                documentLink: $('#edit_documentLink').val()
+            };
+
+            console.log('Updating document:', formData);
+
+            $.ajax({
+                url: '@Url.Action("UpdateDetails", "SAM_Litigation_Detail_DocumentList")',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    console.log('Update response:', response);
+                    if (response.success) {
+                        alert(response.message);
+                        $('#editModal').modal('hide');
+                        // Reload the page to show the updated document
+                        window.location.reload();
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Update Error:', xhr.responseText);
+                    alert('An error occurred: ' + error);
+                }
+            });
+        }
+
+        // Function to handle closing the modal
+        function handleCloseModal() {
+            $('#editModal').modal('hide');
+        }
+    </script>
+}
