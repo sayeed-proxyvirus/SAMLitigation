@@ -45,64 +45,6 @@ namespace SAMLitigation.Controllers
                 throw;
             }
         }
-        [HttpGet]
-        public IActionResult GetAll() 
-        {
-            try
-            {
-                ViewBag.LitigationList = _litigationMasterService.GetAll();
-                return View();
-            }
-            catch 
-            {
-
-                throw;
-            }
-        }
-        // Add these methods to your SAM_Litigation_MasterController class
-
-        [HttpGet]
-        public IActionResult FilterByStatus(string statusName)
-        {
-            try
-            {
-                LoadDropdowns();
-
-                var filteredCases = _litigationMasterService.GetAllEx()
-                    .Where(c => c.LitigationStatusName == statusName)
-                    .ToList();
-
-                ViewBag.LitigationList = filteredCases;
-                ViewBag.FilterType = statusName == "Live" ? "Pending Cases" : "Completed Cases";
-                ViewBag.StatusFilter = statusName;
-
-                return View("Index");
-            }
-            catch
-            {
-                throw;
-            }
-        }
-
-        [HttpGet]
-        public IActionResult FilterByPartyType(bool isAgainst)
-        {
-            try
-            {
-                LoadDropdowns();
-                var filteredCases = _litigationMasterService.GetAllEx()
-                    .Where(c => c.IsAgainstIDCOL == isAgainst)
-                    .ToList();
-                ViewBag.LitigationList = filteredCases;
-                ViewBag.FilterType = !isAgainst ? "Complainant Cases" : "Defendant Cases";
-
-                return View("Index");
-            }
-            catch
-            {
-                throw;
-            }
-        }
         [HttpPost]
         public IActionResult Index(SAM_Litigation_Master model) 
         {

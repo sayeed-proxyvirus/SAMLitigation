@@ -1,114 +1,175 @@
 ﻿@model SAMLitigation.Models.ViewModel.SAM_Litigation_DetailsViewModel
-<tr class="hearing-row">
-    <td class="text-center">
-        <span class="badge badge-warning text-dark">Hearing</span>
-    </td>
-    <td>
-        <span class="label label-primary">@Model.CaseNumber</span>
-    </td>
-    <td>
-        <i class="fas fa-landmark text-warning"></i> @Model.CourtName
-    </td>
-    <td>
-        <i class="fas fa-user-tie text-warning"></i> @Model.LawyerName
-    </td>
-    <td class="text-center">
-        <div class="hearing-date">
-            <i class="fas fa-calendar-alt"></i>
-            @Model.ActionTakenDate.ToString("dd-MMM-yyyy")
+
+<div class="hearing-card mb-3">
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <div>
+                <span class="badge badge-dark mr-2" style="font-size:1em">Hearing</span>
+                <strong style="font-size:2em">@Model.CaseNumber</strong>
+            </div>
+            <div class="hearing-date">
+                <i class="fas fa-calendar-alt"></i>
+                @Model.ActionTakenDate.ToString("dd-MMM-yyyy")
+            </div>
         </div>
-    </td>
-    <td>
-        <div class="comments-section">
-            <strong>Post:</strong>
-            <span class="text-muted">@(string.IsNullOrEmpty(Model.CommentsPostAction) ? "N/A" : Model.CommentsPostAction)</span>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="info-item">
+                        <label class="info-label">
+                            <i class="fas fa-landmark text-warning"></i> Court Name
+                        </label>
+                        <div class="info-value">@Model.CourtName</div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="info-item">
+                        <label class="info-label">
+                            <i class="fas fa-user-tie text-warning"></i> Lawyer Name
+                        </label>
+                        <div class="info-value">@Model.LawyerName</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="info-item">
+                        <label class="info-label">
+                            <i class="fas fa-comment-dots"></i> Prior Comments
+                        </label>
+                        <div class="info-value text-muted">
+                            @(string.IsNullOrEmpty(Model.CommentsPriorAction) ? "N/A" : Model.CommentsPriorAction)
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="info-item">
+                        <label class="info-label">
+                            <i class="fas fa-comment"></i> Post Comments
+                        </label>
+                        <div class="info-value text-muted">
+                            @(string.IsNullOrEmpty(Model.CommentsPostAction) ? "N/A" : Model.CommentsPostAction)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-12">
+                    <div class="action-buttons-div d-flex gap-2">
+                        <button type="button"
+                                class="btn btn-warning flex-fill"
+                                onclick="handleEditDetail(@Model.LitigationDetailID)"
+                                title="Edit this hearing detail">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button type="button"
+                                class="btn btn-info flex-fill"
+                                onclick="viewDocument(@Model.LitigationDetailID)"
+                                title="View/Add documents for this hearing">
+                            <i class="fas fa-file-alt"></i> Documents
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </td>
-    <td>
-        <div class="comments-section">
-            <strong>Prior:</strong>
-            <span class="text-muted">@(string.IsNullOrEmpty(Model.CommentsPriorAction) ? "N/A" : Model.CommentsPriorAction)</span>
-        </div>
-    </td>
-    <td class="text-center">
-        <div class="btn-group-vertical action-buttons" role="group">
-            <button type="button"
-                    class="btn btn-warning btn-action mb-1"
-                    onclick="handleEditDetail(@Model.LitigationDetailID)"
-                    title="Edit this hearing detail">
-                <i class="fas fa-edit"></i> Edit
-            </button>
-            <button type="button"
-                    class="btn btn-info btn-action"
-                    onclick="viewDocument(@Model.LitigationDetailID)"
-                    title="View/Add documents for this hearing">
-                <i class="fas fa-file-alt"></i> Documents
-            </button>
-        </div>
-    </td>
-</tr>
+    </div>
+</div>
+
 <style>
-    .hearing-row {
-        background-color: #fff9c4;
-        border-left: 5px solid #ffc107;
+    .hearing-card {
         transition: all 0.3s ease;
     }
 
-        .hearing-row:hover {
-            background-color: #fff59d;
-            box-shadow: 0 3px 6px rgba(255, 193, 7, 0.4);
-            transform: translateX(3px);
+        .hearing-card:hover {
+            transform: translateY(-3px);
         }
 
-    .action-name-hearing {
-        font-weight: 600;
-        color: #f57f17;
-    }
+        .hearing-card .card {
+            border-left: 5px solid #d69e49;
+        }
 
-    /* Enhanced Action Buttons */
-    .action-buttons {
-        width: 100%;
-        min-width: 120px;
-    }
+        .hearing-card .card-header {
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+        }
 
-    .btn-action {
-        font-size: 0.875rem;
-        padding: 0.5rem 0.75rem;
-        white-space: nowrap;
+    .hearing-date {
         font-weight: 500;
-        width: 100%;
-        text-align: left;
-        border: none;
-        transition: all 0.2s ease;
     }
 
-        .btn-action i {
-            margin-right: 6px;
-            width: 14px;
-            text-align: center;
+    .info-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .info-label {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #495057;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+
+        .info-label i {
+            margin-right: 5px;
         }
 
-        .btn-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    .info-value {
+        font-size: 0.95rem;
+        color: #212529;
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        min-height: 38px;
+    }
+
+    .action-buttons-div {
+        padding-top: 0.5rem;
+        border-top: 1px solid #dee2e6;
+    }
+
+        .action-buttons-div .btn {
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s ease;
         }
 
-        .btn-action.btn-warning {
-            background-color: #ffc107;
+            .action-buttons-div .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+
+        .action-buttons-div .btn-warning {
+            background-color: #d69e49;
+            border-color: #d69e49;
             color: #333;
         }
 
-            .btn-action.btn-warning:hover {
-                background-color: #ffb300;
+            .action-buttons-div .btn-warning:hover {
+                background-color: #d69e49;
+                border-color: #d69e49;
                 color: #000;
             }
 
-        .btn-action.btn-info {
-            background-color: #17a2b8;
+        .action-buttons-div .btn-info {
+            background-color: #a3b7ca;
+            border-color: #a3b7ca;
             color: #fff;
         }
 
-            .btn-action.btn-info:hover {
-                background-color: #138496;
+            .action-buttons-div .btn-info:hover {
+                background-color: #a3b7ca;
+                border-color: #a3b7ca;
             }
+
+    /* Gap utility for older Bootstrap versions */
+    .gap-2 {
+        gap: 0.5rem;
+    }
+
+    /* Flex-fill for older Bootstrap versions */
+    .flex-fill {
+        flex: 1 1 auto;
+    }
 </style>

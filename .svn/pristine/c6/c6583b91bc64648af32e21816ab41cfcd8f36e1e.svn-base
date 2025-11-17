@@ -8,7 +8,6 @@ namespace SAMLitigation.Services
         public bool AddLitigationMaster(SAM_Litigation_Master sAM_Litigation_Master);
         public bool UpdateLitigationMaster(SAM_Litigation_Master sAM_Litigation_Master);
         SAM_Litigation_Master GetByIdForUpdate(decimal Id);
-        List<SAM_Litigation_Master> GetAll();
         public List<LitigationMasterViewModel> GetAllEx();
     }
 }
