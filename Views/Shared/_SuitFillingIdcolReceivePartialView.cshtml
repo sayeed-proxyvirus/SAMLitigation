@@ -4,8 +4,8 @@
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <div>
-                <span class="badge badge-light mr-2" style="font-size:1em">Suit Filing / ID Card Receive</span>
-                <strong style="font-size:2em">@Model.CaseNumber</strong>
+                <span class="badge badge-light mr-2" style="font-size:1em">Suit Filing / DB Entry</span>
+                <strong style="font-size:1.2em">@Model.CaseNumber</strong>
             </div>
             <div class="filing-date">
                 <i class="fas fa-calendar-alt"></i>
@@ -13,65 +13,73 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <div class="info-item">
-                        <label class="info-label">
-                            <i class="fas fa-landmark text-primary"></i> Court Name
-                        </label>
-                        <div class="info-value">@Model.CourtName</div>
+            <div class="row mb-2">
+                <div class="col-md-10">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-landmark text-primary"></i> Receiving Date
+                                </label>
+                                <div class="info-value">@Model.ActionTakenDate.ToString("dd-MMM-yyyy")</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-landmark text-primary"></i> Letter Number:
+                                </label>
+                                <div class="info-value">@Model.CaseNumber</div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <div class="info-item">
-                        <label class="info-label">
-                            <i class="fas fa-user-tie text-primary"></i> Lawyer Name
-                        </label>
-                        <div class="info-value">@Model.LawyerName</div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-landmark text-primary"></i> Action:
+                                </label>
+                                <div class="info-value">@Model.LitigationActionName</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-landmark text-primary"></i> Location:
+                                </label>
+                                <div class="info-value">@Model.CourtName</div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <div class="info-item">
-                        <label class="info-label">
-                            <i class="fas fa-comment-dots"></i> Prior Comments
-                        </label>
-                        <div class="info-value text-muted">
-                            @(string.IsNullOrEmpty(Model.CommentsPriorAction) ? "N/A" : Model.CommentsPriorAction)
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-landmark text-primary"></i> IDCOL Comments:
+                                </label>
+                                <div class="info-value">@Model.CommentsPostAction</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <div class="info-item">
-                        <label class="info-label">
-                            <i class="fas fa-comment"></i> Post Comments
-                        </label>
-                        <div class="info-value text-muted">
-                            @(string.IsNullOrEmpty(Model.CommentsPostAction) ? "N/A" : Model.CommentsPostAction)
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mt-2">
-                <div class="col-12">
-                    <div class="action-buttons-div d-flex gap-2">
+                <div class="col-md-2">
+                    <div class="row">
                         <button type="button"
                                 class="btn btn-warning flex-fill"
+                                style="margin-top : 20pt; margin-right : 5pt; background-color: #eadaa0; border-color : #eadaa0;"
                                 onclick="handleEditDetail(@Model.LitigationDetailID)"
                                 title="Edit this suit filing detail">
                             <i class="fas fa-edit"></i> Edit
                         </button>
                         <button type="button"
                                 class="btn btn-info flex-fill"
+                                style="margin-top : 10pt; margin-right : 5pt; background-color:#a3b7ca; border-color:#a3b7ca;"
                                 onclick="viewDocument(@Model.LitigationDetailID)"
                                 title="View/Add documents for this suit filing">
                             <i class="fas fa-file-alt"></i> Documents
                         </button>
-                    </div>
-                </div>
+                    </div>                   
+                </div>         
             </div>
         </div>
     </div>
@@ -93,7 +101,7 @@
         .suit-filing-card .card-header {
             background-color: #476066 !important;
             font-weight: 600;
-            padding: 0.75rem 1rem;
+            padding: 0.5rem 1rem;
         }
 
     .filing-date {
@@ -119,15 +127,14 @@
     .info-value {
         font-size: 0.95rem;
         color: #212529;
-        padding: 0.5rem;
+        padding: 0.4rem 0.5rem;
         background-color: #f8f9fa;
         border-radius: 4px;
-        min-height: 38px;
+        min-height: 34px;
     }
 
     .action-buttons-div {
-        padding-top: 0.5rem;
-        border-top: 1px solid #dee2e6;
+        padding-top: 0.25rem;
     }
 
         .action-buttons-div .btn {
