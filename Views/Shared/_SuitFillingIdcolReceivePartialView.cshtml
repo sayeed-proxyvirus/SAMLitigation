@@ -104,7 +104,6 @@
                             3. If has both MakerUserID and CheckerUserID: No edit/verify buttons
                         *@
 
-                        @* Edit Button - Only for Maker when NOT verified (no CheckerUserID) *@
                         @if (isMaker && !hasChecker)
                         {
                             <button type="button"
@@ -116,7 +115,7 @@
                             </button>
                         }
 
-                        @* Verify Button - Only for Checker when pending (has Maker but no Checker) *@
+
                         @if (isChecker && hasMaker && !hasChecker)
                         {
                             <button type="button"

@@ -43,7 +43,6 @@ namespace SAMLitigation.Controllers
                 // Get current user ID for verification
                 ViewBag.CurrentUserId = GetCurrentUserId(); // Get actual logged-in user ID
 
-                // Setup dropdown lists
                 List<SAM_Litigation_Court> ListCourt = _courtService.GetCourtALL();
                 ViewBag.ListCourts = ListCourt.Select(x => new SelectListItem
                 {
