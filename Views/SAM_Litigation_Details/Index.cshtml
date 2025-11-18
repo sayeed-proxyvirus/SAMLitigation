@@ -385,7 +385,7 @@
     <script>
         // Get the litigation ID from ViewBag
         var currentLitigationID = @(ViewBag.LitigationId ?? 0);
-
+        var userRoleId = @(ViewBag.UserRoleId ?? 0);
         // Pagination variables
         var itemsPerPage = 10;
         var currentPage = 1;
@@ -636,6 +636,35 @@
         // Function to handle closing the modal
         function handleCloseModal() {
             $('#editModal').modal('hide');
+        }
+                function handleVerifyDetail(detailId) {
+            if (!confirm('Are you sure you want to verify this detail? Once verified, it cannot be edited by the maker.')) {
+                return;
+            }
+
+            console.log('Verifying detail ID:', detailId);
+
+            $.ajax({
+                url: '@Url.Action("VerifyDetail", "SAM_Litigation_Details")',
+                type: 'POST',
+                data: {
+                    litigationDetailId: detailId
+                },
+                success: function(response) {
+                    console.log('Verify response:', response);
+                    if (response.success) {
+                        alert(response.message);
+                        // Reload with the litigation ID parameter
+                        window.location.href = '@Url.Action("Index", "SAM_Litigation_Details")' + '?id=' + currentLitigationID;
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Verify error:', xhr.responseText);
+                    alert('An error occurred: ' + error);
+                }
+            });
         }
 
         function viewDocument(LitigationDetailID) {

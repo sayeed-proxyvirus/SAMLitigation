@@ -15,6 +15,25 @@ namespace SAMLitigation.Models.ViewModel
         public string CommentsPostAction { get; set; }
         public string CourtName { get; set; }
         public string LawyerName { get; set; }
+        public decimal? MakerUserID { get; set; }
+        public decimal? CheckerUserID { get; set; }
 
+        // Computed property for Status
+        [NotMapped]
+        public string Status
+        {
+            get
+            {
+                if (MakerUserID.HasValue && MakerUserID.Value > 0)
+                {
+                    if (CheckerUserID.HasValue && CheckerUserID.Value > 0)
+                    {
+                        return "Verified";
+                    }
+                    return "PendingVerification";
+                }
+                return "Draft";
+            }
+        }
     }
 }
