@@ -1,0 +1,190 @@
+﻿@model SAMLitigation.Models.ViewModel.SAM_Litigation_DetailsViewModel
+
+<div class="hearing-card mb-3">
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <div>
+                <span class="badge badge-dark mr-2" style="font-size:1em">Hearing</span>
+                <strong style="font-size:1.2em">@Model.CaseNumber</strong>
+            </div>
+            <div class="hearing-date">
+                <i class="fas fa-calendar-alt"></i>
+                @Model.ActionTakenDate.ToString("dd-MMM-yyyy")
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-10">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-landmark text-primary"></i> Hearing Date
+                                </label>
+                                <div class="info-value">@Model.ActionTakenDate.ToString("dd-MMM-yyyy")</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-landmark text-primary"></i> Case Number:
+                                </label>
+                                <div class="info-value">@Model.CaseNumber</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-landmark text-primary"></i> Lawyer:
+                                </label>
+                                <div class="info-value">@Model.LawyerName</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-landmark text-primary"></i> Location:
+                                </label>
+                                <div class="info-value">@Model.CourtName</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-landmark text-primary"></i> Prior Comments:
+                                </label>
+                                <div class="info-value">@Model.CommentsPriorAction</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-landmark text-primary"></i> Post Comments:
+                                </label>
+                                <div class="info-value">@Model.CommentsPostAction</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="row">
+                        <button type="button"
+                                class="btn btn-warning flex-fill"
+                                style="margin-top : 20pt; margin-right : 5pt; background-color : #eadaa0; border-color : #eadaa0"
+                                onclick="handleEditDetail(@Model.LitigationDetailID)"
+                                title="Edit this suit filing detail">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button type="button"
+                                class="btn btn-info flex-fill"
+                                style="margin-top : 10pt; margin-right : 5pt; background-color : #a3b7ca; border-color:#a3b7ca"
+                                onclick="viewDocument(@Model.LitigationDetailID)"
+                                title="View/Add documents for this suit filing">
+                            <i class="fas fa-file-alt"></i> Documents
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hearing-card {
+        transition: all 0.3s ease;
+    }
+
+        .hearing-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .hearing-card .card {
+            border-left: 5px solid #d69e49;
+        }
+
+        .hearing-card .card-header {
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+        }
+
+    .hearing-date {
+        font-weight: 500;
+    }
+
+    .info-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .info-label {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #495057;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+
+        .info-label i {
+            margin-right: 5px;
+        }
+
+    .info-value {
+        font-size: 0.95rem;
+        color: #212529;
+        padding: 0.4rem 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        min-height: 34px;
+    }
+
+    .action-buttons-div {
+        padding-top: 0.25rem;
+    }
+
+        .action-buttons-div .btn {
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s ease;
+        }
+
+            .action-buttons-div .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+
+        .action-buttons-div .btn-warning {
+            background-color: #d69e49;
+            border-color: #d69e49;
+            color: #333;
+        }
+
+            .action-buttons-div .btn-warning:hover {
+                background-color: #d69e49;
+                border-color: #d69e49;
+                color: #000;
+            }
+
+        .action-buttons-div .btn-info {
+            background-color: #a3b7ca;
+            border-color: #a3b7ca;
+            color: #fff;
+        }
+
+            .action-buttons-div .btn-info:hover {
+                background-color: #a3b7ca;
+                border-color: #a3b7ca;
+            }
+
+    /* Gap utility for older Bootstrap versions */
+    .gap-2 {
+        gap: 0.5rem;
+    }
+
+    /* Flex-fill for older Bootstrap versions */
+    .flex-fill {
+        flex: 1 1 auto;
+    }
+</style>
