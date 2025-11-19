@@ -1,4 +1,5 @@
 ﻿@model SAMLitigation.Models.ViewModel.SAM_Litigation_DetailsViewModel
+
 @{
     var userRoleId = ViewBag.UserRoleId ?? 0;
 
@@ -7,8 +8,8 @@
     var hasChecker = Model.CheckerUserID.HasValue && Model.CheckerUserID.Value > 0;
 
     // Determine status
-    var isVerified = hasMaker && hasChecker;
-    var isPending = hasMaker && !hasChecker;
+    var isVerified = hasMaker && hasChecker; // Has both Maker and Checker
+    var isPending = hasMaker && !hasChecker; // Has only Maker
 
     // User roles
     var isMaker = userRoleId == 0;
@@ -17,12 +18,14 @@
     // Computed status string
     var statusText = isVerified ? "Verified" : (isPending ? "PendingVerification" : "Draft");
 }
-<div class="discussion-card mb-3">
-    <div class="card shadow-sm border-success">
-        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+
+<div class="suit-filing-card mb-3" data-status="@statusText">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <div>
-                <span class="badge badge-light mr-2" style="font-size:1em">Discussion/Argument</span>
+                <span class="badge badge-light mr-2" style="font-size:1em">Suit Filing / DB Entry</span>
                 <strong style="font-size:1.2em">@Model.CaseNumber</strong>
+
                 @* Status Badge based on MakerUserID and CheckerUserID *@
                 @if (isPending)
                 {
@@ -37,7 +40,7 @@
                     </span>
                 }
             </div>
-            <div class="discussion-date">
+            <div class="filing-date">
                 <i class="fas fa-calendar-alt"></i>
                 @Model.ActionTakenDate.ToString("dd-MMM-yyyy")
             </div>
@@ -49,9 +52,27 @@
                         <div class="col-md-6">
                             <div class="info-item">
                                 <label class="info-label">
-                                    <i class="fas fa-landmark text-primary"></i> Lawyer:
+                                    <i class="fas fa-calendar text-primary"></i> Receiving Date
                                 </label>
-                                <div class="info-value">@Model.LawyerName</div>
+                                <div class="info-value">@Model.ActionTakenDate.ToString("dd-MMM-yyyy")</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-envelope text-primary"></i> Letter Number:
+                                </label>
+                                <div class="info-value">@Model.CaseNumber</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-tasks text-primary"></i> Action:
+                                </label>
+                                <div class="info-value">@Model.LitigationActionName</div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -67,26 +88,23 @@
                         <div class="col-md-12">
                             <div class="info-item">
                                 <label class="info-label">
-                                    <i class="fas fa-landmark text-primary"></i> Prior Comments:
+                                    <i class="fas fa-comment text-primary"></i> IDCOL Comments:
                                 </label>
-                                <div class="info-value">@Model.CommentsPriorAction</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="info-item">
-                                <label class="info-label">
-                                    <i class="fas fa-landmark text-primary"></i> Post Comments:
-                                </label>
-                                <div class="info-value">@Model.CommentsPostAction</div>
+                                <div class="info-value">@(string.IsNullOrEmpty(Model.CommentsPostAction) ? "N/A" : Model.CommentsPostAction)</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-2">
                     <div class="row">
-                        @if ((isMaker || isChecker) && !hasChecker)
+                        @* 
+                            Button Visibility Logic:
+                            1. Maker (roleId = 0): Can edit if CheckerUserID is NULL (not verified)
+                            2. Checker (roleId = 1): Can verify if has MakerUserID but no CheckerUserID
+                            3. If has both MakerUserID and CheckerUserID: No edit/verify buttons
+                        *@
+
+                        @if (isMaker && !hasChecker)
                         {
                             <button type="button"
                                     class="btn btn-warning flex-fill"
@@ -125,25 +143,35 @@
 </div>
 
 <style>
-    .discussion-card {
+    .suit-filing-card {
         transition: all 0.3s ease;
     }
 
-        .discussion-card:hover {
+        .suit-filing-card:hover {
             transform: translateY(-3px);
         }
 
-        .discussion-card .card {
-            border-left: 5px solid #4caf50;
+        .suit-filing-card .card {
+            border-left: 5px solid #476066;
+            transition: border-color 0.3s ease;
         }
 
-        .discussion-card .card-header {
-            background-color: #4caf50 !important;
+        /* Change border color based on status */
+        .suit-filing-card[data-status="PendingVerification"] .card {
+            border-left-color: #ffc107;
+        }
+
+        .suit-filing-card[data-status="Verified"] .card {
+            border-left-color: #28a745;
+        }
+
+        .suit-filing-card .card-header {
+            background-color: #476066 !important;
             font-weight: 600;
             padding: 0.5rem 1rem;
         }
 
-    .discussion-date {
+    .filing-date {
         font-weight: 500;
     }
 
@@ -171,6 +199,7 @@
         border-radius: 4px;
         min-height: 34px;
     }
+
     /* Status Badge Styles */
     .status-badge {
         font-size: 0.85em;
@@ -188,50 +217,28 @@
         background-color: #28a745 !important;
         color: #fff !important;
     }
-    .action-buttons-div {
-        padding-top: 0.25rem;
+
+    /* Button Styles */
+    .btn {
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s ease;
     }
 
-        .action-buttons-div .btn {
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            transition: all 0.2s ease;
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
-            .action-buttons-div .btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-            }
-
-        .action-buttons-div .btn-warning {
-            background-color: #eadaa0;
-            border-color: #eadaa0;
-            color: #333;
-        }
-
-            .action-buttons-div .btn-warning:hover {
-                background-color: #eadaa0;
-                border-color: #eadaa0;
-                color: #000;
-            }
-
-        .action-buttons-div .btn-info {
-            background-color: #a3b7ca;
-            border-color: #a3b7ca;
-            color: #fff;
-        }
-
-            .action-buttons-div .btn-info:hover {
-                background-color: #a3b7ca;
-                border-color: #a3b7ca;
-            }
-
-    /* Gap utility for older Bootstrap versions */
-    .gap-2 {
-        gap: 0.5rem;
+    .btn-success:hover {
+        background-color: #218838 !important;
+        border-color: #1e7e34 !important;
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
     }
 
-    /* Flex-fill for older Bootstrap versions */
+
+
+    /* Flex utilities */
     .flex-fill {
         flex: 1 1 auto;
     }

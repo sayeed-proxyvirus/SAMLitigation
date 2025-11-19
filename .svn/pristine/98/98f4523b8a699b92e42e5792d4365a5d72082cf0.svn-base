@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SAMLitigation.Models;
-using SAMLitigation.Models.Enum;
 using SAMLitigation.Models.ViewModel;
 using SAMLitigation.Services;
 using System.Text.Json;
@@ -16,12 +15,11 @@ namespace SAMLitigation.Controllers
         private readonly LawyerService _lawyerService;
         private readonly LitigationActionService _litigationActionService;
         private readonly LitigationMasterService _litigationMasterService;
-        private readonly UserTableService _userTableService;
 
         public SAM_Litigation_DetailsController(ILogger<SAM_Litigation_DetailsController> logger,
             LitigationDetailService litigationDetailService, CourtService courtService,
             LawyerService lawyerService, LitigationActionService litigationActionService,
-            LitigationMasterService litigationMasterService, UserTableService userTableService)
+            LitigationMasterService litigationMasterService)
         {
             _logger = logger;
             _litigationDetailService = litigationDetailService;
@@ -29,7 +27,6 @@ namespace SAMLitigation.Controllers
             _lawyerService = lawyerService;
             _litigationActionService = litigationActionService;
             _litigationMasterService = litigationMasterService;
-            _userTableService = userTableService;
         }
 
         [HttpGet]
@@ -37,8 +34,15 @@ namespace SAMLitigation.Controllers
         {
             try
             {
+                // Store the litigation ID in ViewBag for the view
                 ViewBag.LitigationId = Id;
-                ViewBag.UserRoleId = GetCurrentUserRole();
+
+                // Get current user role (0 = Maker, 1 = Checker)
+                // Replace this with your actual authentication logic
+                ViewBag.UserRoleId = GetCurrentUserRole(); // 0 or 1
+
+                // Get current user ID for verification
+                ViewBag.CurrentUserId = GetCurrentUserId(); // Get actual logged-in user ID
 
                 List<SAM_Litigation_Court> ListCourt = _courtService.GetCourtALL();
                 ViewBag.ListCourts = ListCourt.Select(x => new SelectListItem
@@ -88,23 +92,27 @@ namespace SAMLitigation.Controllers
             }
         }
 
-        /// <summary>
-        /// Get current user role: 0 = Maker, 1 = Checker
-        /// </summary>
+        // Helper method to get current user role
         private int GetCurrentUserRole()
         {
-            try
-            {
-                var rolesJson = HttpContext.Session.GetString("roles");
-                if (string.IsNullOrEmpty(rolesJson)) return 0;
+            // TODO: Replace with your actual authentication logic
+            // Return 0 for Maker, 1 for Checker
+            // Example:
+            // var userRole = User.Claims.FirstOrDefault(c => c.Type == "RoleId")?.Value;
+            // return int.Parse(userRole ?? "0");
 
-                var roles = JsonSerializer.Deserialize<List<UserRoleRelationViewModel>>(rolesJson);
-                return roles?.Any(r => r.RoleID == (int)UserRoles.SAM_CHECKER) == true ? 1 : 0;
-            }
-            catch (Exception)
-            {
-                return 0;
-            }
+            return 1; // Temporary - replace with actual logic
+        }
+
+        // Helper method to get current user ID
+        private decimal GetCurrentUserId()
+        {
+            // TODO: Replace with your actual authentication logic
+            // Example:
+            // var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            // return decimal.Parse(userId ?? "1");
+
+            return 1; // Temporary - replace with actual logic
         }
 
         [HttpPost]
@@ -115,8 +123,6 @@ namespace SAMLitigation.Controllers
         {
             try
             {
-
-
                 var Details = new SAM_Litigation_Detail
                 {
                     LitigationID = litigationID,
@@ -125,8 +131,8 @@ namespace SAMLitigation.Controllers
                     CommentsPriorAction = commentsPriorAction,
                     CommentsPostAction = commentsPostAction,
                     CaseNumber = caseNumber,
-                    CheckerUserID = null,
-                    MakerUserID = 1, // Will be replaced with actual user ID from session
+                    CheckerUserID = null, // Set to null initially - no checker yet
+                    MakerUserID = GetCurrentUserId(), // Set current user as maker
                     LitigationCourtID = litigationCourtID,
                     LitigationLawyerID = litigationLawyerID
                 };
@@ -135,12 +141,20 @@ namespace SAMLitigation.Controllers
                 if (success)
                 {
                     _logger.LogInformation($"Litigation detail added successfully for Litigation ID: {litigationID}");
-                    return Json(new { success = true, message = "Litigation detail has been added successfully!" });
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Litigation detail has been added successfully!"
+                    });
                 }
                 else
                 {
                     _logger.LogWarning("Litigation detail addition failed");
-                    return Json(new { success = false, message = "Failed to add litigation detail. Please try again." });
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Failed to add litigation detail. Please try again."
+                    });
                 }
             }
             catch (Exception ex)
@@ -150,7 +164,11 @@ namespace SAMLitigation.Controllers
                 {
                     _logger.LogError($"Inner Exception: {ex.InnerException.Message}");
                 }
-                return Json(new { success = false, message = "An error occurred: " + ex.Message });
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred: " + ex.Message
+                });
             }
         }
 
@@ -158,42 +176,30 @@ namespace SAMLitigation.Controllers
         public IActionResult UpdateDetails(decimal LitigationDetailID, decimal litigationID,
             decimal litigationActionID, DateTime actionTakenDate, string caseNumber,
             string commentsPriorAction, string commentsPostAction, decimal litigationCourtID,
-            decimal litigationLawyerID, decimal makerUserID, decimal checkerUserID, bool isVerifying = false)
+            decimal litigationLawyerID, decimal makerUserID, decimal checkerUserID)
         {
             try
             {
-                var currentRole = GetCurrentUserRole();
-                var existingDetail = _litigationDetailService.GetDetailByIdForUpdate(LitigationDetailID);
+                //Get Session
+                var rolesJson = HttpContext.Session.GetString("roles");
+                List<UserRoleRelationViewModel> roles = new List<UserRoleRelationViewModel>();
 
+                if (!string.IsNullOrEmpty(rolesJson))
+                {
+                     roles = JsonSerializer.Deserialize<List<UserRoleRelationViewModel>>(rolesJson);
+                }
+
+
+                var existingDetail = _litigationDetailService.GetDetailByIdForUpdate(LitigationDetailID);
                 if (existingDetail == null)
                 {
-                    return Json(new { success = false, message = "Detail not found." });
-                }
-
-                if (existingDetail.CheckerUserID.HasValue && existingDetail.CheckerUserID.Value > 0)
-                {
-                    return Json(new { success = false, message = "Cannot edit a verified detail." });
-                }
-
-                // If this is a verify action
-                if (isVerifying)
-                {
-                    if (currentRole != 1)
+                    return Json(new
                     {
-                        return Json(new { success = false, message = "Only Checkers can verify details." });
-                    }
-
-                    existingDetail.CheckerUserID = 1;
-                    _logger.LogInformation($"Litigation detail {LitigationDetailID} being verified");
-                }
-                else
-                {
-                    // Regular edit - reset CheckerUserID to null
-                    existingDetail.CheckerUserID = null;
-                    _logger.LogInformation($"Litigation detail {LitigationDetailID} being edited");
+                        success = false,
+                        message = "Detail not found."
+                    });
                 }
 
-                // Update all fields
                 existingDetail.LitigationID = litigationID;
                 existingDetail.LitigationActionID = litigationActionID;
                 existingDetail.ActionTakenDate = actionTakenDate;
@@ -202,22 +208,29 @@ namespace SAMLitigation.Controllers
                 existingDetail.CommentsPriorAction = commentsPriorAction;
                 existingDetail.LitigationCourtID = litigationCourtID;
                 existingDetail.LitigationLawyerID = litigationLawyerID;
-                existingDetail.MakerUserID = 1; 
+                existingDetail.MakerUserID = GetCurrentUserId(); // Update maker
+
+                // Reset CheckerUserID to null when edited (back to pending)
+                existingDetail.CheckerUserID = null;
 
                 bool success = _litigationDetailService.Update(existingDetail);
-
                 if (success)
                 {
-                    var message = isVerifying
-                        ? "Litigation detail has been verified successfully!"
-                        : "Litigation detail has been updated successfully!";
-
-                    return Json(new { success = true, message = message });
+                    _logger.LogInformation($"Litigation detail {LitigationDetailID} updated successfully");
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Litigation detail has been updated successfully!"
+                    });
                 }
                 else
                 {
                     _logger.LogWarning($"Litigation detail {LitigationDetailID} update failed");
-                    return Json(new { success = false, message = "Failed to update litigation detail. Please try again." });
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Failed to update litigation detail. Please try again."
+                    });
                 }
             }
             catch (Exception ex)
@@ -227,7 +240,74 @@ namespace SAMLitigation.Controllers
                 {
                     _logger.LogError($"Inner Exception: {ex.InnerException.Message}");
                 }
-                return Json(new { success = false, message = "An error occurred: " + ex.Message });
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred: " + ex.Message
+                });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult VerifyDetail(decimal litigationDetailId)
+        {
+            try
+            {
+                var existingDetail = _litigationDetailService.GetDetailByIdForUpdate(litigationDetailId);
+                if (existingDetail == null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Detail not found."
+                    });
+                }
+
+                // Check if already verified
+                if (existingDetail.CheckerUserID.HasValue && existingDetail.CheckerUserID.Value > 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "This detail has already been verified."
+                    });
+                }
+
+                // Set CheckerUserID to current user - this marks it as verified
+                existingDetail.CheckerUserID = GetCurrentUserId();
+
+                bool success = _litigationDetailService.Update(existingDetail);
+                if (success)
+                {
+                    _logger.LogInformation($"Litigation detail {litigationDetailId} verified successfully by user {existingDetail.CheckerUserID}");
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Litigation detail has been verified successfully!"
+                    });
+                }
+                else
+                {
+                    _logger.LogWarning($"Litigation detail {litigationDetailId} verification failed");
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Failed to verify litigation detail. Please try again."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception in VerifyDetail: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError($"Inner Exception: {ex.InnerException.Message}");
+                }
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred: " + ex.Message
+                });
             }
         }
 
@@ -243,7 +323,11 @@ namespace SAMLitigation.Controllers
                 if (detailEntity == null)
                 {
                     _logger.LogWarning($"Detail with LitigationDetailID {id} not found");
-                    return Json(new { success = false, message = "Detail not found." });
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Detail not found."
+                    });
                 }
 
                 var detailList = _litigationDetailService.GetDetailsALLByLitigationId(detailEntity.LitigationID);
@@ -252,7 +336,11 @@ namespace SAMLitigation.Controllers
                 if (detail == null)
                 {
                     _logger.LogWarning($"Detail with LitigationDetailID {id} not found in list");
-                    return Json(new { success = false, message = "Detail not found." });
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Detail not found."
+                    });
                 }
 
                 _logger.LogInformation($"Detail with LitigationDetailID {id} retrieved successfully");
@@ -262,16 +350,13 @@ namespace SAMLitigation.Controllers
                     success = true,
                     litigationDetailID = detail.LitigationDetailID,
                     litigationID = detailEntity.LitigationID,
-                    litigationActionID = detailEntity.LitigationActionID,
                     litigationActionName = detail.LitigationActionName ?? string.Empty,
-                    litigationCourtID = detailEntity.LitigationCourtID,
-                    courtName = detail.CourtName ?? string.Empty,
-                    litigationLawyerID = detailEntity.LitigationLawyerID,
-                    lawyerName = detail.LawyerName ?? string.Empty,
                     actionTakenDate = detail.ActionTakenDate.ToString("yyyy-MM-dd"),
                     caseNumber = detail.CaseNumber ?? string.Empty,
                     commentsPriorAction = detail.CommentsPriorAction ?? string.Empty,
-                    commentsPostAction = detail.CommentsPostAction ?? string.Empty
+                    commentsPostAction = detail.CommentsPostAction ?? string.Empty,
+                    courtName = detail.CourtName ?? string.Empty,
+                    lawyerName = detail.LawyerName ?? string.Empty
                 });
             }
             catch (Exception ex)
@@ -281,7 +366,11 @@ namespace SAMLitigation.Controllers
                 {
                     _logger.LogError($"Inner Exception: {ex.InnerException.Message}");
                 }
-                return Json(new { success = false, message = "An error occurred: " + ex.Message });
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred: " + ex.Message
+                });
             }
         }
     }

@@ -115,7 +115,11 @@ namespace SAMLitigation.Controllers
         {
             try
             {
-
+                // Only Makers can add
+                if (GetCurrentUserRole() != 0)
+                {
+                    return Json(new { success = false, message = "Only Makers can add litigation details." });
+                }
 
                 var Details = new SAM_Litigation_Detail
                 {
@@ -262,16 +266,13 @@ namespace SAMLitigation.Controllers
                     success = true,
                     litigationDetailID = detail.LitigationDetailID,
                     litigationID = detailEntity.LitigationID,
-                    litigationActionID = detailEntity.LitigationActionID,
                     litigationActionName = detail.LitigationActionName ?? string.Empty,
-                    litigationCourtID = detailEntity.LitigationCourtID,
-                    courtName = detail.CourtName ?? string.Empty,
-                    litigationLawyerID = detailEntity.LitigationLawyerID,
-                    lawyerName = detail.LawyerName ?? string.Empty,
                     actionTakenDate = detail.ActionTakenDate.ToString("yyyy-MM-dd"),
                     caseNumber = detail.CaseNumber ?? string.Empty,
                     commentsPriorAction = detail.CommentsPriorAction ?? string.Empty,
-                    commentsPostAction = detail.CommentsPostAction ?? string.Empty
+                    commentsPostAction = detail.CommentsPostAction ?? string.Empty,
+                    courtName = detail.CourtName ?? string.Empty,
+                    lawyerName = detail.LawyerName ?? string.Empty
                 });
             }
             catch (Exception ex)

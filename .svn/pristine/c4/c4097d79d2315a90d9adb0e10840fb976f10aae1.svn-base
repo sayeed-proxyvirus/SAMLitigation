@@ -109,6 +109,8 @@
                 <form id="editDetailsForm">
                     <input type="hidden" id="edit_litigationDetailID" />
                     <input type="hidden" id="edit_litigationID" />
+                    <input type="hidden" id="edit_makerUserID" value="1" />
+                    <input type="hidden" id="edit_checkerUserID" value="1" />
 
                     <div class="row">
                         <div class="col-md-6">
@@ -554,7 +556,8 @@
             });
         }
 
-                function populateEditForm(data) {
+        // Function to populate the edit form with data
+        function populateEditForm(data) {
             console.log('Populating form with:', data);
             $('#edit_litigationDetailID').val(data.litigationDetailID);
             $('#edit_litigationID').val(data.litigationID);
@@ -563,13 +566,27 @@
             $('#edit_commentsPriorAction').val(data.commentsPriorAction || '');
             $('#edit_commentsPostAction').val(data.commentsPostAction || '');
 
-            $('#edit_litigationActionID').val(data.litigationActionID);
-            $('#edit_litigationCourtID').val(data.litigationCourtID);
-            $('#edit_litigationLawyerID').val(data.litigationLawyerID);
+            // Set Action dropdown by matching text
+            $('#edit_litigationActionID option').filter(function() {
+                return $(this).text() === data.litigationActionName;
+            }).prop('selected', true);
+
+            // Set Court dropdown by matching text
+            $('#edit_litigationCourtID option').filter(function() {
+                return $(this).text() === data.courtName;
+            }).prop('selected', true);
+
+            // Set Lawyer dropdown by matching text
+            $('#edit_litigationLawyerID option').filter(function() {
+                return $(this).text() === data.lawyerName;
+            }).prop('selected', true);
+
+            $('#edit_makerUserID').val(1); // Default value - adjust as needed
+            $('#edit_checkerUserID').val(1); // Default value - adjust as needed
         }
 
         // Function to handle saving changes to a litigation detail
-            function handleSaveChanges() {
+        function handleSaveChanges() {
             if (!$('#editDetailsForm')[0].checkValidity()) {
                 $('#editDetailsForm')[0].reportValidity();
                 return;
@@ -585,9 +602,9 @@
                 commentsPostAction: $('#edit_commentsPostAction').val(),
                 litigationCourtID: parseFloat($('#edit_litigationCourtID').val()),
                 litigationLawyerID: parseFloat($('#edit_litigationLawyerID').val()),
-                makerUserID: 1,
-                checkerUserID: 0,
-                isVerifying: false
+                makerUserID: parseFloat($('#edit_makerUserID').val()),
+                checkerUserID: parseFloat($('#edit_checkerUserID').val()),
+                isVerifying: false // This is an edit, not a verify
             };
 
             console.log('Updating detail:', formData);
@@ -630,16 +647,16 @@
                         var formData = {
                             litigationDetailID: detail.litigationDetailID,
                             litigationID: detail.litigationID,
-                            litigationActionID: detail.litigationActionID,
+                            litigationActionID: 0, // Will use existing values from DB
                             actionTakenDate: detail.actionTakenDate,
                             caseNumber: detail.caseNumber,
                             commentsPriorAction: detail.commentsPriorAction,
                             commentsPostAction: detail.commentsPostAction,
-                            litigationCourtID: detail.litigationCourtID,
-                            litigationLawyerID: detail.litigationLawyerID,
+                            litigationCourtID: 0, // Will use existing values from DB
+                            litigationLawyerID: 0, // Will use existing values from DB
                             makerUserID: 1,
                             checkerUserID: 1,
-                            isVerifying: true
+                            isVerifying: true // This marks it as a verify action
                         };
 
                         $.ajax({
@@ -673,6 +690,35 @@
         // Function to handle closing the modal
         function handleCloseModal() {
             $('#editModal').modal('hide');
+        }
+                function handleVerifyDetail(detailId) {
+            if (!confirm('Are you sure you want to verify this detail? Once verified, it cannot be edited by the maker.')) {
+                return;
+            }
+
+            console.log('Verifying detail ID:', detailId);
+
+            $.ajax({
+                url: '@Url.Action("VerifyDetail", "SAM_Litigation_Details")',
+                type: 'POST',
+                data: {
+                    litigationDetailId: detailId
+                },
+                success: function(response) {
+                    console.log('Verify response:', response);
+                    if (response.success) {
+                        alert(response.message);
+                        // Reload with the litigation ID parameter
+                        window.location.href = '@Url.Action("Index", "SAM_Litigation_Details")' + '?id=' + currentLitigationID;
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Verify error:', xhr.responseText);
+                    alert('An error occurred: ' + error);
+                }
+            });
         }
 
         function viewDocument(LitigationDetailID) {
