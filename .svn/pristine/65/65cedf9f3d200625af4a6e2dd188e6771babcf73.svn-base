@@ -25,7 +25,6 @@ builder.Services.AddScoped<DashboardService, DashboardServiceImple>();
 builder.Services.AddScoped<LawyerService, LawyerServiceImple>();
 builder.Services.AddScoped<StatusService, StatusServiceImple>();
 builder.Services.AddScoped<TypeService, TypeServiceImple>();
-builder.Services.AddScoped<MenuItemService, MenuTreeServiceImple>();
 builder.Services.AddScoped<SectorService, SectorServiceImple>();
 builder.Services.AddScoped<LitigationActionService, LitigationActionServiceImple>();
 builder.Services.AddScoped<LitigationDetailDocumentListService, LitigationDetailDocumentListServiceImple>();

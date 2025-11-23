@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SAMLitigation.Models.ApplicationDbContext;
-using SAMLitigation.Models.AuthorizeAttribute;
 using SAMLitigation.Services;
 using SAMLitigation.Services.ServiceImple;
 
@@ -36,7 +35,6 @@ builder.Services.AddScoped<LitigationPartyService, LitigationPartyServiceImple>(
 
 builder.Services.AddScoped<ProjectTypeService, ProjectTypeServiceImple>();
 builder.Services.AddHttpClient<AuthenticateServiceImple>();
-builder.Services.AddScoped<CustomAuthorizationFillter>();
 
 
 
