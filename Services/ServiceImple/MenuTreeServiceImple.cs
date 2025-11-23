@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿// Services/ServiceImple/MenuTreeServiceImple.cs
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SAMLitigation.Models.ApplicationDbContext;
 using SAMLitigation.Models.ViewModel;
@@ -8,73 +9,103 @@ namespace SAMLitigation.Services.ServiceImple
     public class MenuTreeServiceImple : MenuItemService
     {
         private readonly SAMDbContext _context;
-        public MenuTreeServiceImple(SAMDbContext context) 
+        private readonly ILogger<MenuTreeServiceImple> _logger;
+
+        public MenuTreeServiceImple(SAMDbContext context, ILogger<MenuTreeServiceImple> logger)
         {
             _context = context;
-        }
-        public List<MenuItemRawViewModel> GetRawMenuData(decimal roleId)
-        {
-            var param = new SqlParameter("@RoleId", roleId);
-
-            return _context.Set<MenuItemRawViewModel>()
-                .FromSqlRaw("EXEC GetUserAccessList @RoleId", param)
-                .ToList();
-        }
-        private MenuItemViewModel ConvertToMenuModel(ChildofMenuInfoViewModel item)
-        {
-            return new MenuItemViewModel
-            {
-                MenuID = item.ChieldID,
-                MenuName = item.DisplayName,
-                ParentMenuID = item.ParentID,
-                DisplayOrder = (int)item.SeqNo,
-                ControllerName = item.ChieldCode,     
-                ActionName = "",                      
-                ChildrenMenu = new List<MenuItemViewModel>()
-            };
+            _logger = logger;
         }
 
-        public List<MenuItemViewModel> BuildMenuTree(List<ChildofMenuInfoViewModel> raw)
+        /// <summary>
+        /// Get menu hierarchy from database for specific user
+        /// Pure data access - no HTML, no business logic
+        /// </summary>
+        public List<ChildofMenuInfoViewModel> GetMenuHierarchyByUserId(decimal userId)
         {
-
-            var list = raw.Select(x => new MenuItemViewModel
+            try
             {
-                MenuID = x.ChieldID,
-                MenuName = x.DisplayName,
-                ParentMenuID = x.ParentID,
-                DisplayOrder = (decimal)x.SeqNo,
-                ChildrenMenu = new List<MenuItemViewModel>()
-            }).ToList();
+                var param = new SqlParameter("@UserId", userId);
 
-            var lookup = list.ToDictionary(m => m.MenuID, m => m);
+                var menuData = _context.Set<ChildofMenuInfoViewModel>()
+                    .FromSqlRaw("EXEC GetFullSubMenusAndControllerMethodsForSecurityWeb @UserId", param)
+                    .ToList();
 
-            List<MenuItemViewModel> rootNodes = new List<MenuItemViewModel>();
+                _logger.LogInformation($"Retrieved {menuData.Count} menu items from database for user {userId}");
 
-            foreach (var node in list)
-            {
-                if (node.ParentMenuID == null || node.ParentMenuID == 0)
-                {
-                    rootNodes.Add(node);
-                }
-                else
-                {
-                    if (lookup.ContainsKey(node.ParentMenuID.Value))
-                    {
-                        lookup[node.ParentMenuID.Value].ChildrenMenu.Add(node);
-                    }
-                }
+                return menuData;
             }
-
-            foreach (var node in list)
+            catch (Exception ex)
             {
-                node.ChildrenMenu = node.ChildrenMenu.OrderBy(c => c.DisplayOrder).ToList();
+                _logger.LogError($"Error getting menu hierarchy for user {userId}: {ex.Message}");
+                throw;
             }
-
-            return rootNodes.OrderBy(x => x.DisplayOrder).ToList();
         }
 
+        public Dictionary<decimal, List<ChildofMenuInfoViewModel>> GetMenuGroupedByParent(decimal userId)
+        {
+            try
+            {
+                var allMenus = GetMenuHierarchyByUserId(userId);
 
+                var groupedMenus = allMenus
+                    .GroupBy(m => m.ParentID)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.OrderBy(m => m.SeqNo).ToList()
+                    );
 
+                _logger.LogInformation($"Grouped {allMenus.Count} menus into {groupedMenus.Count} parent groups for user {userId}");
 
+                return groupedMenus;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error grouping menus for user {userId}: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Convert raw data to MenuItemViewModel
+        /// Pure data conversion - no HTML
+        /// </summary>
+        public List<MenuItemViewModel> ConvertToMenuItemList(List<ChildofMenuInfoViewModel> rawData)
+        {
+            try
+            {
+                if (rawData == null || !rawData.Any())
+                {
+                    _logger.LogInformation("No raw menu data provided for conversion");
+                    return new List<MenuItemViewModel>();
+                }
+
+                var menuItems = rawData.Select(item => new MenuItemViewModel
+                {
+                    MenuID = item.ChieldID,
+                    MenuName = item.DisplayName,
+                    MenuCode = item.ChieldCode,
+                    ParentMenuID = item.ParentID,
+                    DisplayOrder = item.SeqNo,
+                    IsMenu = item.ISMenu,
+                    IsDisplayable = item.IsDisplayable,
+                    ApplicationName = item.ApplicationName,
+                    ControllerName = item.ISMenu ? null : item.ChieldCode,
+                    ActionName = item.ISMenu ? null : "Index",
+                    Icon = item.ISMenu ? "bi-folder" : "bi-file-earmark",
+                    MenuLevel = 0, // Will be calculated in controller during tree building
+                    ChildrenMenu = new List<MenuItemViewModel>()
+                }).ToList();
+
+                _logger.LogInformation($"Converted {menuItems.Count} items to MenuItemViewModel");
+
+                return menuItems;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error converting menu items: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

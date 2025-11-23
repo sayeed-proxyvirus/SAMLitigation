@@ -1,9 +1,11 @@
 ﻿using SAMLitigation.Models.ViewModel;
 
-public interface MenuItemService
+namespace SAMLitigation.Services
 {
-    List<MenuItemRawViewModel> GetRawMenuData(decimal roleId);
-    List<MenuItemViewModel> BuildMenuTree(List<ChildofMenuInfoViewModel> raw);
-
-
+    public interface MenuItemService
+    {
+        List<ChildofMenuInfoViewModel> GetMenuHierarchyByUserId(decimal userId);
+        Dictionary<decimal, List<ChildofMenuInfoViewModel>> GetMenuGroupedByParent(decimal userId);
+        List<MenuItemViewModel> ConvertToMenuItemList(List<ChildofMenuInfoViewModel> rawData);
+    }
 }

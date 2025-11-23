@@ -10,7 +10,6 @@
         public string ApplicationName { get; set; }
         public decimal SeqNo { get; set; }
         public bool ISMenu { get; set; }
-        public decimal RoleID { get; set; }
         public bool IsDisplayable { get; set; }
     }
 }
