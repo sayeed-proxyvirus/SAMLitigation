@@ -12,45 +12,69 @@ namespace SAMLitigation.Services.ServiceImple
         {
             _context = context;
         }
-        public List<MenuItemViewModel> GetMenuItems(decimal Id) 
+        public List<MenuItemRawViewModel> GetRawMenuData(decimal roleId)
         {
-            try
-            {
-                var param = new SqlParameter("@RoleId", Id);
-                var menulist = _context.Set<MenuItemViewModel>()
-                    .FromSqlRaw("EXEC GetUserAccessList @RoleId", param)
-                    .ToList();
-                var menutree = BuildMenuTree(menulist);
-                return menutree;
+            var param = new SqlParameter("@RoleId", roleId);
 
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
+            return _context.Set<MenuItemRawViewModel>()
+                .FromSqlRaw("EXEC GetUserAccessList @RoleId", param)
+                .ToList();
         }
-        public List<MenuItemViewModel> BuildMenuTree(List<MenuItemViewModel> menulist) 
+        private MenuItemViewModel ConvertToMenuModel(ChildofMenuInfoViewModel item)
         {
-            var rootlist = new List<MenuItemViewModel>();
-            var menuDictionary = menulist.ToDictionary(m => m.MenuID);
-            foreach (var menu in menulist) 
+            return new MenuItemViewModel
             {
-                if (menu.ParentMenuID == null || menu.ParentMenuID == 0)
+                MenuID = item.ChieldID,
+                MenuName = item.DisplayName,
+                ParentMenuID = item.ParentID,
+                DisplayOrder = (int)item.SeqNo,
+                ControllerName = item.ChieldCode,     
+                ActionName = "",                      
+                ChildrenMenu = new List<MenuItemViewModel>()
+            };
+        }
+
+        public List<MenuItemViewModel> BuildMenuTree(List<ChildofMenuInfoViewModel> raw)
+        {
+
+            var list = raw.Select(x => new MenuItemViewModel
+            {
+                MenuID = x.ChieldID,
+                MenuName = x.DisplayName,
+                ParentMenuID = x.ParentID,
+                DisplayOrder = (decimal)x.SeqNo,
+                ChildrenMenu = new List<MenuItemViewModel>()
+            }).ToList();
+
+            var lookup = list.ToDictionary(m => m.MenuID, m => m);
+
+            List<MenuItemViewModel> rootNodes = new List<MenuItemViewModel>();
+
+            foreach (var node in list)
+            {
+                if (node.ParentMenuID == null || node.ParentMenuID == 0)
                 {
-                    rootlist.Add(menu);
+                    rootNodes.Add(node);
                 }
-                else 
+                else
                 {
-                    if (menuDictionary.ContainsKey(menu.ParentMenuID.Value))
+                    if (lookup.ContainsKey(node.ParentMenuID.Value))
                     {
-                        var parent = menuDictionary[menu.ParentMenuID.Value];
-                        parent.Children.Add(menu);
+                        lookup[node.ParentMenuID.Value].ChildrenMenu.Add(node);
                     }
                 }
-                return rootlist;
             }
-            return rootlist;
+
+            foreach (var node in list)
+            {
+                node.ChildrenMenu = node.ChildrenMenu.OrderBy(c => c.DisplayOrder).ToList();
+            }
+
+            return rootNodes.OrderBy(x => x.DisplayOrder).ToList();
         }
+
+
+
+
     }
 }

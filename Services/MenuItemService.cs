@@ -1,10 +1,9 @@
 ﻿using SAMLitigation.Models.ViewModel;
 
-namespace SAMLitigation.Services
+public interface MenuItemService
 {
-    public class MenuItemService
-    {
-        public List<MenuItemViewModel> GetMenuTree(decimal Id);
-        public List<MenuItemViewModel> BuildMenuTree(List<MenuItemViewModel> menulist);
-    }
+    List<MenuItemRawViewModel> GetRawMenuData(decimal roleId);
+    List<MenuItemViewModel> BuildMenuTree(List<ChildofMenuInfoViewModel> raw);
+
+
 }

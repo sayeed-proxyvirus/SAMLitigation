@@ -11,11 +11,10 @@
         public int DisplayOrder { get; set; }
         public int MenuLevel { get; set; }
 
-        public List<MenuItemViewModel> Children { get; set; }
-
+        public List<MenuItemViewModel> ChildrenMenu { get; set; }
         public MenuItemViewModel() 
         {
-            Children = new List<MenuItemViewModel>();
+            ChildrenMenu = new List<MenuItemViewModel>();
         }
     }
 }
