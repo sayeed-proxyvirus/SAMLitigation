@@ -1,20 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SAMLitigation.Models.ViewModel;
+
 namespace SAMLitigation.Models.ApplicationDbContext
 {
     public class SAMDbContext : DbContext
     {
         public SAMDbContext(DbContextOptions<SAMDbContext> options) : base(options)
         {
-
         }
+
         public DbSet<UserTable> UsersTable { get; set; }
         public DbSet<UserRoleRelationViewModel> UserRoleViewModel { get; set; }
         public DbSet<DashboardViewModel> DashboardViewModels { get; set; }
         public DbSet<LitigationMasterViewModel> LitigationMasterViewModel { get; set; }
         public DbSet<LoanNCPaperProcessingProjectViewModel> ProjectViewModel { get; set; }
         public DbSet<MenuItem> MenuItems { get; set; }
-        //public DbSet<MenuItemViewModel> MenuItems { get; set; }
         public DbSet<SAM_Litigation_PartyViewModel> LitigationPartyViewModel { get; set; }
         public DbSet<SAM_Litigation_DetailsViewModel> LitigationDetailsViewModel { get; set; }
         public DbSet<SAM_Litigation_Lawyer> Lawyer { get; set; }
@@ -31,25 +31,22 @@ namespace SAMLitigation.Models.ApplicationDbContext
         public DbSet<SAM_Litigation_Detail> Litigation_Details { get; set; }
         public DbSet<SAM_Litigation_Detail_DocumentList> Litigation_Details_DocumentList { get; set; }
 
+        public DbSet<UserMenuRootViewModel> UserMenuRoots { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<UserRoleRelationViewModel>().HasNoKey();
-
             modelBuilder.Entity<DashboardViewModel>().HasNoKey();
             modelBuilder.Entity<SAM_Litigation_DetailsViewModel>().HasNoKey();
             modelBuilder.Entity<LoanNCPaperProcessingProjectViewModel>().HasNoKey();
-
             modelBuilder.Entity<LitigationMasterViewModel>().HasNoKey();
-
             modelBuilder.Entity<MenuItemViewModel>().HasNoKey();
-
             modelBuilder.Entity<SAM_Litigation_PartyViewModel>().HasNoKey();
-
             modelBuilder.Entity<ChildofMenuInfoViewModel>().HasNoKey();
 
-
+            modelBuilder.Entity<UserMenuRootViewModel>().HasNoKey();
         }
     }
 }
