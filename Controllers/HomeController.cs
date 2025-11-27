@@ -23,7 +23,7 @@ namespace SAMLitigation.Controllers
         {
             DashboardViewModel viewModel = new DashboardViewModel();
 
-            viewModel = dashboardService.GetDashboardAllCount();
+            //viewModel = dashboardService.GetDashboardAllCount();
             //PrepareMenuTree();
 
             return View(viewModel);
