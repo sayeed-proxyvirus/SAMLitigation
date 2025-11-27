@@ -13,7 +13,8 @@ namespace SAMLitigation.Models.ApplicationDbContext
         public DbSet<DashboardViewModel> DashboardViewModels { get; set; }
         public DbSet<LitigationMasterViewModel> LitigationMasterViewModel { get; set; }
         public DbSet<LoanNCPaperProcessingProjectViewModel> ProjectViewModel { get; set; }
-        public DbSet<MenuItemViewModel> MenuItemViewModel { get; set; }
+        public DbSet<MenuItem> MenuItems { get; set; }
+        //public DbSet<MenuItemViewModel> MenuItems { get; set; }
         public DbSet<SAM_Litigation_PartyViewModel> LitigationPartyViewModel { get; set; }
         public DbSet<SAM_Litigation_DetailsViewModel> LitigationDetailsViewModel { get; set; }
         public DbSet<SAM_Litigation_Lawyer> Lawyer { get; set; }

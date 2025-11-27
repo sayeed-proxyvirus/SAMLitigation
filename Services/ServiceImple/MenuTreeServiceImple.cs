@@ -1,8 +1,9 @@
-﻿// Services/ServiceImple/MenuTreeServiceImple.cs
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SAMLitigation.Models.ApplicationDbContext;
 using SAMLitigation.Models.ViewModel;
+using System.Linq;
+using System.Numerics;
 
 namespace SAMLitigation.Services.ServiceImple
 {
@@ -10,102 +11,154 @@ namespace SAMLitigation.Services.ServiceImple
     {
         private readonly SAMDbContext _context;
         private readonly ILogger<MenuTreeServiceImple> _logger;
-
         public MenuTreeServiceImple(SAMDbContext context, ILogger<MenuTreeServiceImple> logger)
         {
             _context = context;
             _logger = logger;
         }
-
-        /// <summary>
-        /// Get menu hierarchy from database for specific user
-        /// Pure data access - no HTML, no business logic
-        /// </summary>
-        public List<ChildofMenuInfoViewModel> GetMenuHierarchyByUserId(decimal userId)
+        public HierarchicalMenuViewModel GetHierarchicalMenu()
         {
-            try
-            {
-                userId = 1207;
-                var param = new SqlParameter("@UserId", userId);
-                
-                var menuData = _context.Set<ChildofMenuInfoViewModel>()
-                    .FromSqlRaw("EXEC GetFullSubMenusAndControllerMethodsForSecurityWeb1 @UserId", param)
-                    .ToList();
+            var flatMenuItems = _context.MenuItems
+                .FromSqlRaw("EXEC GETALL")
+                .ToList();
 
-                _logger.LogInformation($"Retrieved {menuData.Count} menu items from database for user {userId}");
-
-                return menuData;
-            }
-            catch (Exception ex)
+            var menuViewModels = flatMenuItems.Select(m => new MenuItemViewModel
             {
-                _logger.LogError($"Error getting menu hierarchy for user {userId}: {ex.Message}");
-                throw;
-            }
+                ParentID = m.ParentID,
+                ParentCode = m.ParentCode,
+                ChildID = m.ChildID,
+                ChildCode = m.ChildCode,
+                DisplayName = m.DisplayName,
+                ApplicationName = m.ApplicationName,
+                SeqNo = m.SeqNo,
+                IsMenu = m.IsMenu,
+                IsDisplayable = m.IsDisplayable
+            }).ToList();
+
+            var hierarchicalMenu = BuildHierarchyIterative(menuViewModels);
+
+            return new HierarchicalMenuViewModel
+            {
+                RootItems = hierarchicalMenu
+            };
         }
 
-        public Dictionary<decimal, List<ChildofMenuInfoViewModel>> GetMenuGroupedByParent(decimal userId)
+        public List<MenuItemViewModel> BuildHierarchyIterative(List<MenuItemViewModel> flatList)
         {
-            try
+            flatList = flatList.Where(x => x.ParentID != x.ChildID).ToList();
+
+            // Create lookup: ParentID -> List of Children
+            var childrenLookup = flatList
+                .GroupBy(x => x.ParentID)
+                .ToDictionary(g => g.Key, g => g.OrderBy(x => x.SeqNo).ToList());
+
+            // Get all ChildIDs for quick lookup
+            var allChildIds = new HashSet<decimal>(flatList.Select(x => x.ChildID));
+
+            // Step 1: Find Root Level (ParentIDs that are NOT in any ChildID column)
+            var rootParentIds = flatList
+                .Select(x => x.ParentID)
+                .Distinct()
+                .Where(parentId => !allChildIds.Contains(parentId))
+                .ToList();
+
+            var rootItems = new List<MenuItemViewModel>();
+            foreach (var rootParentId in rootParentIds)
             {
-                var allMenus = GetMenuHierarchyByUserId(userId);
-
-                var groupedMenus = allMenus
-                    .GroupBy(m => m.ParentID)
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.OrderBy(m => m.SeqNo).ToList()
-                    );
-
-                _logger.LogInformation($"Grouped {allMenus.Count} menus into {groupedMenus.Count} parent groups for user {userId}");
-
-                return groupedMenus;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error grouping menus for user {userId}: {ex.Message}");
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Convert raw data to MenuItemViewModel
-        /// Pure data conversion - no HTML
-        /// </summary>
-        public List<MenuItemViewModel> ConvertToMenuItemList(List<ChildofMenuInfoViewModel> rawData)
-        {
-            try
-            {
-                if (rawData == null || !rawData.Any())
+                if (childrenLookup.ContainsKey(rootParentId))
                 {
-                    _logger.LogInformation("No raw menu data provided for conversion");
-                    return new List<MenuItemViewModel>();
+                    var roots = childrenLookup[rootParentId];
+                    foreach (var root in roots)
+                    {
+                        root.Level = 1;
+                        rootItems.Add(root);
+                    }
+                }
+            }
+
+            // Step 2: Process level by level iteratively
+            int currentLevel = 1;
+            var currentLevelItems = new List<MenuItemViewModel>(rootItems);
+
+            while (currentLevelItems.Any())
+            {
+                var nextLevelItems = new List<MenuItemViewModel>();
+
+                foreach (var parent in currentLevelItems)
+                {
+                    // Find children where ParentID = parent's ChildID
+                    if (childrenLookup.ContainsKey(parent.ChildID))
+                    {
+                        var children = childrenLookup[parent.ChildID];
+
+                        foreach (var child in children)
+                        {
+                            child.Level = currentLevel + 1;
+                            parent.Children.Add(child);
+                            nextLevelItems.Add(child);
+                        }
+                    }
                 }
 
-                var menuItems = rawData.Select(item => new MenuItemViewModel
+                // Check if any of the nextLevel's ChildIDs exist as ParentIDs
+                if (nextLevelItems.Any())
                 {
-                    MenuID = item.ChildID,
-                    MenuName = item.DisplayName,
-                    MenuCode = item.ChildCode,
-                    ParentMenuID = item.ParentID,
-                    DisplayOrder = item.SeqNo,
-                    IsMenu = item.ISMenu,
-                    IsDisplayable = item.IsDisplayable,
-                    ApplicationName = item.ApplicationName,
-                    ControllerName = item.ISMenu ? null : item.ChildCode,
-                    ActionName = item.ISMenu ? null : "Index",
-                    Icon = item.ISMenu ? "bi-folder" : "bi-file-earmark",
-                    MenuLevel = 0, // Will be calculated in controller during tree building
-                    ChildrenMenu = new List<MenuItemViewModel>()
-                }).ToList();
+                    var nextLevelChildIds = nextLevelItems.Select(x => x.ChildID).ToHashSet();
 
-                _logger.LogInformation($"Converted {menuItems.Count} items to MenuItemViewModel");
+                    // Check if any of these ChildIDs appear as ParentIDs in our lookup
+                    bool hasMoreLevels = nextLevelChildIds.Any(childId => childrenLookup.ContainsKey(childId));
 
-                return menuItems;
+                    if (!hasMoreLevels)
+                    {
+                        // No more levels, exit loop
+                        break;
+                    }
+                }
+
+                // Move to next level
+                currentLevelItems = nextLevelItems;
+                currentLevel++;
             }
-            catch (Exception ex)
+
+            return rootItems.OrderBy(x => x.SeqNo).ToList();
+        }
+
+        private void AttachChildren(
+            MenuItemViewModel parent,
+            Dictionary<decimal, List<MenuItemViewModel>> groupedByParent,  // Changed to decimal
+            int currentLevel,
+            HashSet<decimal> visitedInCurrentPath)  // Changed to decimal
+        {
+            // Check if parent's ChildID has any children
+            if (!groupedByParent.ContainsKey(parent.ChildID))
             {
-                _logger.LogError($"Error converting menu items: {ex.Message}");
-                throw;
+                return; // No children, exit recursion
+            }
+
+            var children = groupedByParent[parent.ChildID];
+
+            foreach (var child in children)
+            {
+                // Skip if this ChildID was already visited in the current path
+                if (visitedInCurrentPath.Contains(child.ChildID))
+                {
+                    continue; // Skip to prevent infinite loop
+                }
+
+                // Skip if child's ParentID equals its own ChildID
+                if (child.ParentID == child.ChildID)
+                {
+                    continue;
+                }
+
+                child.Level = currentLevel + 1;
+                parent.Children.Add(child);
+
+                // Create a NEW HashSet<decimal> for this branch
+                var newPath = new HashSet<decimal>(visitedInCurrentPath) { child.ChildID };
+
+                // Recursively attach children with the new path
+                AttachChildren(child, groupedByParent, currentLevel + 1, newPath);
             }
         }
     }

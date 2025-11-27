@@ -1,0 +1,9 @@
+﻿@model List<SAMLitigation.Models.ViewModel.MenuItemViewModel>
+
+@if (Model != null && Model.Any())
+{
+    @foreach (var menuItem in Model.OrderBy(m => m.SeqNo))
+    {
+        @await Html.PartialAsync("_MenuItemRecursive", menuItem)
+    }
+}

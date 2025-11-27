@@ -1,7 +1,10 @@
 ﻿@using Microsoft.AspNetCore.Http
+@using SAMLitigation.Services
 @inject IHttpContextAccessor HttpContextAccessor
+@inject MenuItemService MenuService
 @{
     var username = HttpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Guest";
+    var menuData = MenuService.GetHierarchicalMenu();
 }
 
 <!DOCTYPE html>
@@ -16,12 +19,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ProjectProcessFlow.styles.css" asp-append-version="true" />
-
-    <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-
-
 
     <style>
         body {
@@ -37,14 +35,24 @@
             color: white;
             flex-shrink: 0;
             transition: transform 0.3s ease-in-out;
+            overflow-y: auto;
+            max-height: 100vh;
         }
 
             .sidebar .nav-link {
                 color: #ccc;
+                padding: 0.5rem 1rem;
+                border-radius: 0.25rem;
+                transition: all 0.2s;
             }
 
                 .sidebar .nav-link:hover {
                     background-color: #495057;
+                    color: white;
+                }
+
+                .sidebar .nav-link.active {
+                    background-color: #0d6efd;
                     color: white;
                 }
 
@@ -115,101 +123,52 @@
         .error-message {
             font-size: 18px;
         }
+
+        /* Nested menu styling */
+        .sidebar ul ul {
+            padding-left: 0;
+        }
+
+        .sidebar .nav-link i.bi-caret-down-fill {
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+        }
+
+        .sidebar .nav-link[aria-expanded="true"] i.bi-caret-down-fill {
+            transform: rotate(180deg);
+        }
+
+        /* Remove default list styling */
+        .sidebar ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .sidebar li {
+            margin-bottom: 0.25rem;
+        }
     </style>
 </head>
 <body>
     <!-- Sidebar -->
     <div class="sidebar d-flex flex-column p-3" id="sidebar">
-        <h4 class="text-white">Menu</h4>
-        <ul class="nav nav-pills flex-column mb-auto">
+        <h4 class="text-white mb-4">SAM Menu</h4>
 
-            <!-- Home -->
+        <ul class="nav nav-pills flex-column mb-auto">
+            <!-- Static Home Link -->
             <li>
                 <a class="nav-link" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-house-door-fill me-2"></i> Home
                 </a>
             </li>
 
-            <!-- SAM Main Menu -->
-            <li>
-                <a class="nav-link d-flex justify-content-between align-items-center"
-                   data-bs-toggle="collapse" href="#samSubmenu" role="button" aria-expanded="false" aria-controls="samSubmenu">
-                    <span><i class="bi bi-briefcase-fill me-2"></i> SAM</span>
-                    <i class="bi bi-caret-down-fill"></i>
-                </a>
+            <!-- Dynamic Menu from Database using Partial View -->
+            @await Html.PartialAsync("_MenuItemPartial", menuData.RootItems)
 
-                <ul class="collapse nav flex-column ms-3" id="samSubmenu">
-                    <!-- Entry -->
-                    <li>
-                        <a class="nav-link d-flex justify-content-between align-items-center"
-                           data-bs-toggle="collapse" href="#entrySubmenu" role="button" aria-expanded="false" aria-controls="entrySubmenu">
-                            <span><i class="bi bi-folder-plus me-2"></i> Entry</span>
-                            <i class="bi bi-caret-down-fill"></i>
-                        </a>
-                        <ul class="collapse nav flex-column ms-3" id="entrySubmenu">
-                            <li>
-                                <a class="nav-link" asp-controller="SAM_Litigation_Master" asp-action="Index">
-                                    <i class="bi bi-database-add me-2"></i> Litigation Entry
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <!-- Setup -->
-                    <li>
-                        <a class="nav-link d-flex justify-content-between align-items-center"
-                           data-bs-toggle="collapse" href="#setupSubmenu" role="button" aria-expanded="false" aria-controls="setupSubmenu">
-                            <span><i class="bi bi-gear-fill me-2"></i> Setup</span>
-                            <i class="bi bi-caret-down-fill"></i>
-                        </a>
-                        <ul class="collapse nav flex-column ms-3" id="setupSubmenu">
-                            <li>
-                                <a class="nav-link" asp-controller="SAM_Litigation_Action" asp-action="Index">
-                                    <i class="bi bi-files me-2"></i> Litigation Actions
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" asp-controller="SAM_Litigation_Court" asp-action="Index">
-                                    <i class="bi bi-file-earmark-text me-2"></i> Add Court
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" asp-controller="SAM_Litigation_Lawyer" asp-action="Index">
-                                    <i class="bi bi-people-fill me-2"></i> Add Lawyer
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" asp-controller="SAM_Litigation_Cause" asp-action="Index">
-                                    <i class="bi bi-diamond-half me-2"></i> Add Cause
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" asp-controller="SAM_Litigation_Type" asp-action="Index">
-                                    <i class="bi bi-files me-2"></i> Case Type
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" asp-controller="SAM_Litigation_Party" asp-action="Index">
-                                    <i class="bi bi-files me-2"></i> Litigation Party
-                                </a>
-                            </li>
-
-                        </ul>
-                    </li>
-
-                    <!-- Reports -->
-                    <li>
-                        <a class="nav-link" asp-controller="Reports" asp-action="Index">
-                            <i class="bi bi-file-earmark-bar-graph-fill me-2"></i> Reports
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
-            <!-- Logout -->
-            <li>
+            <!-- Static Logout -->
+            <li class="mt-3">
                 <form method="post" asp-controller="Login" asp-action="Logout">
-                    <button type="submit" class="btn btn-link nav-link text-start">
+                    <button type="submit" class="btn btn-link nav-link text-start w-100">
                         <i class="bi bi-box-arrow-right me-2"></i> Logout
                     </button>
                 </form>
@@ -244,9 +203,6 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
-    <!-- jQuery (required for Select2) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
@@ -255,14 +211,29 @@
         const overlay = document.getElementById('overlay');
         const toggleButton = document.getElementById('menuToggle');
 
-        toggleButton.addEventListener('click', () => {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        });
+        if (toggleButton) {
+            toggleButton.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+        }
 
-        overlay.addEventListener('click', () => {
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
+
+        // Highlight active menu item
+        $(document).ready(function () {
+            var currentPath = window.location.pathname;
+            $('.sidebar .nav-link').each(function () {
+                var href = $(this).attr('href');
+                if (href && currentPath.indexOf(href) !== -1 && href !== '/') {
+                    $(this).addClass('active');
+                }
+            });
         });
     </script>
 
