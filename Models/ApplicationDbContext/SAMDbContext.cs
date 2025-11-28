@@ -43,6 +43,7 @@ namespace SAMLitigation.Models.ApplicationDbContext
             modelBuilder.Entity<LoanNCPaperProcessingProjectViewModel>().HasNoKey();
             modelBuilder.Entity<LitigationMasterViewModel>().HasNoKey();
             modelBuilder.Entity<MenuItemViewModel>().HasNoKey();
+            modelBuilder.Entity<MenuItem>().HasNoKey();
             modelBuilder.Entity<SAM_Litigation_PartyViewModel>().HasNoKey();
             modelBuilder.Entity<ChildofMenuInfoViewModel>().HasNoKey();
 

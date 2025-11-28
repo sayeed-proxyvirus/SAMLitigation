@@ -20,32 +20,26 @@ namespace SAMLitigation.Services.ServiceImple
         {
             try
             {
-                // Step 1: Get root menu IDs for this user from SP1
+                //root menu call
                 var rootMenuIds = GetUserRootMenus(userId);
-
                 if (!rootMenuIds.Any())
                 {
                     _logger.LogWarning($"No root menus found for user {userId}");
                     return new HierarchicalMenuViewModel { RootItems = new List<MenuItemViewModel>() };
                 }
-
-                // Step 2: Get all menu relationships from SP2
+                //all menu call func
                 var allMenuItems = GetAllMenuRelationships();
-
                 if (!allMenuItems.Any())
                 {
                     _logger.LogWarning("No menu items found in SP2");
                     return new HierarchicalMenuViewModel { RootItems = new List<MenuItemViewModel>() };
                 }
-
-                // Step 3: Build hierarchical structure
+                //tree recur
                 var hierarchy = BuildMenuHierarchy(rootMenuIds, allMenuItems);
-
                 return new HierarchicalMenuViewModel { RootItems = hierarchy };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, $"Error building menu hierarchy for user {userId}");
                 throw;
             }
         }
@@ -55,39 +49,29 @@ namespace SAMLitigation.Services.ServiceImple
             var hierarchy = GetUserMenuHierarchy(userId);
             return FlattenHierarchy(hierarchy.RootItems);
         }
-
-        /// <summary>
-        /// SP1: Gets root menu IDs for a specific user
-        /// </summary>
         private List<decimal> GetUserRootMenus(decimal userId)
         {
             try
             {
                 userId = 4;
                 var param = new SqlParameter("@UserId", userId);
-
-                // Assuming SP1 returns MenuID column
+                //first rootmenu call
                 var rootMenus = _context.Set<UserMenuRootViewModel>()
                     .FromSqlRaw("EXEC SP1_GetUserRootMenus @UserId", param)
                     .ToList();
-
                 return rootMenus.Select(m => m.MenuID).Distinct().ToList();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, $"Error fetching root menus for user {userId}");
                 throw;
             }
         }
 
-        /// <summary>
-        /// SP2: Gets all menu relationships (parent-child mappings)
-        /// </summary>
         private List<MenuItemViewModel> GetAllMenuRelationships()
         {
             try
             {
-                // This calls your existing SP2 that returns all menu relationships
+                //all menu call
                 var menuItems = _context.MenuItems
                     .FromSqlRaw("EXEC GETALL")
                     .ToList();
@@ -97,7 +81,7 @@ namespace SAMLitigation.Services.ServiceImple
                     ParentID = m.ParentID,
                     ParentCode = m.ParentCode,
                     ChildID = m.ChildID,
-                    ChildCode = m.ChildCode,
+                    ChildCode = m.ChildCode ?? string.Empty,
                     DisplayName = m.DisplayName,
                     ApplicationName = m.ApplicationName,
                     SeqNo = m.SeqNo,
@@ -105,101 +89,78 @@ namespace SAMLitigation.Services.ServiceImple
                     IsDisplayable = m.IsDisplayable
                 }).ToList();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Error fetching all menu relationships");
                 throw;
             }
         }
 
-        /// <summary>
-        /// Builds hierarchical menu structure starting from root menu IDs
-        /// </summary>
         private List<MenuItemViewModel> BuildMenuHierarchy(List<decimal> rootMenuIds, List<MenuItemViewModel> allMenuItems)
         {
-            // Filter to remove self-referencing items
+            //self-referencing stop
             allMenuItems = allMenuItems.Where(x => x.ParentID != x.ChildID).ToList();
-
-            // Build lookup: ParentID -> List of Children
+            //dictionary banano lookup: ParentID -> List of Children
             var childrenLookup = allMenuItems
                 .GroupBy(x => x.ParentID)
                 .ToDictionary(g => g.Key, g => g.OrderBy(x => x.SeqNo).ToList());
-
             var rootItems = new List<MenuItemViewModel>();
 
-            // For each root menu ID from SP1
+            //for each root menu ID from SP1
             foreach (var rootMenuId in rootMenuIds.Distinct())
             {
-                // Find all menu items where ParentID matches this root menu ID
                 if (childrenLookup.ContainsKey(rootMenuId))
                 {
                     var firstLevelItems = childrenLookup[rootMenuId];
-
                     foreach (var item in firstLevelItems)
                     {
                         item.Level = 1;
-
-                        // Recursively build children
+                        //recall
                         BuildChildrenRecursive(item, childrenLookup, 1, new HashSet<decimal> { item.ChildID });
-
                         rootItems.Add(item);
                     }
                 }
             }
-
             return rootItems.OrderBy(x => x.SeqNo).ToList();
         }
 
-        /// <summary>
-        /// Recursively builds children for a menu item
-        /// </summary>
         private void BuildChildrenRecursive(
             MenuItemViewModel parent,
             Dictionary<decimal, List<MenuItemViewModel>> childrenLookup,
             int currentLevel,
             HashSet<decimal> visitedInPath)
         {
-            // Check if this parent's ChildID has any children
+            //check parent's ChildID has any children
             if (!childrenLookup.ContainsKey(parent.ChildID))
             {
-                return; // No children, exit recursion
+                return;
             }
 
             var children = childrenLookup[parent.ChildID];
-
             foreach (var child in children)
             {
-                // Prevent infinite loops - skip if already visited in current path
+                //prevent loop to be infinite
                 if (visitedInPath.Contains(child.ChildID))
                 {
                     _logger.LogWarning($"Circular reference detected: ChildID {child.ChildID} already in path");
                     continue;
                 }
-
-                // Skip self-referencing items
+                //self-referencing stop
                 if (child.ParentID == child.ChildID)
                 {
                     continue;
                 }
-
                 child.Level = currentLevel + 1;
                 parent.Children.Add(child);
-
-                // Create new path for this branch to track visited nodes
+                //path to visitednode
                 var newPath = new HashSet<decimal>(visitedInPath) { child.ChildID };
-
-                // Recursively build this child's children
+                //recall
                 BuildChildrenRecursive(child, childrenLookup, currentLevel + 1, newPath);
             }
         }
 
-        /// <summary>
-        /// Flattens hierarchical menu into a single list
-        /// </summary>
         private List<MenuItemViewModel> FlattenHierarchy(List<MenuItemViewModel> items)
         {
             var result = new List<MenuItemViewModel>();
-
             foreach (var item in items)
             {
                 result.Add(item);
@@ -209,7 +170,6 @@ namespace SAMLitigation.Services.ServiceImple
                     result.AddRange(FlattenHierarchy(item.Children));
                 }
             }
-
             return result;
         }
     }

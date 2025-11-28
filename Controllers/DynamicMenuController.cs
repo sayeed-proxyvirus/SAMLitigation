@@ -14,9 +14,6 @@ namespace SAMLitigation.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Gets hierarchical menu for the logged-in user
-        /// </summary>
         [HttpGet]
         public IActionResult GetUserMenu(decimal userId)
         {
@@ -32,9 +29,6 @@ namespace SAMLitigation.Controllers
             }
         }
 
-        /// <summary>
-        /// Gets flat menu list for the logged-in user
-        /// </summary>
         [HttpGet]
         public IActionResult GetUserMenuFlat(decimal userId)
         {
@@ -46,7 +40,7 @@ namespace SAMLitigation.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error retrieving flat menu for user {userId}");
-                return StatusCode(500, new { error = "An error occurred while retrieving the menu" });
+                return StatusCode(500, new { error = "An error occurred while retrieving the flat menu" });
             }
         }
     }
