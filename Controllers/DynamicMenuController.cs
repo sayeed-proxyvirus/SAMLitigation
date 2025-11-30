@@ -19,6 +19,7 @@ namespace SAMLitigation.Controllers
         {
             try
             {
+                _logger.LogInformation($"GetUserMenu called for userId: {userId}");
                 var menu = _dynamicMenuService.GetUserMenuHierarchy(userId);
                 return Ok(menu);
             }
@@ -26,6 +27,37 @@ namespace SAMLitigation.Controllers
             {
                 _logger.LogError(ex, $"Error retrieving menu for user {userId}");
                 return StatusCode(500, new { error = "An error occurred while retrieving the menu" });
+            }
+        }
+
+        /// <summary>
+        /// Returns rendered HTML for the menu using partial views
+        /// This is what gets called from the layout AJAX
+        /// </summary>
+        [HttpGet]
+        public IActionResult GetMenuHtml(decimal userId)
+        {
+            try
+            {
+                _logger.LogInformation($"GetMenuHtml called for userId: {userId}");
+
+                var menuHierarchy = _dynamicMenuService.GetUserMenuHierarchy(userId);
+
+                if (menuHierarchy?.RootItems == null || !menuHierarchy.RootItems.Any())
+                {
+                    _logger.LogWarning($"No menu items found for user {userId}");
+                    return PartialView("_EmptyMenu");
+                }
+
+                _logger.LogInformation($"Returning {menuHierarchy.RootItems.Count} root menu items");
+
+                // Return the partial view with the root items
+                return PartialView("_MenuItemPartial", menuHierarchy.RootItems);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in GetMenuHtml for user {userId}");
+                return PartialView("_ErrorMenu");
             }
         }
 
@@ -43,5 +75,34 @@ namespace SAMLitigation.Controllers
                 return StatusCode(500, new { error = "An error occurred while retrieving the flat menu" });
             }
         }
+
+        /// <summary>
+        /// Test endpoint - Remove after debugging
+        /// </summary>
+        [HttpGet]
+        public IActionResult TestMenuData(decimal userId = 4)
+        {
+            try
+            {
+                var menu = _dynamicMenuService.GetUserMenuHierarchy(userId);
+                return Json(new
+                {
+                    success = true,
+                    userId = userId,
+                    rootItemsCount = menu.RootItems?.Count ?? 0,
+                    rootItems = menu.RootItems
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    error = ex.Message
+                });
+            }
+        }
+
+
     }
 }

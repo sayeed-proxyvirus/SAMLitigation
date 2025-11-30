@@ -1,8 +1,27 @@
 ﻿@model SAMLitigation.Models.ViewModel.MenuItemViewModel
 
-@if (Model.IsDisplayable)
+@* 
+    Render logic:
+    1. If parent is NOT displayable but has displayable children → render children only
+    2. If parent IS displayable → render normally
+*@
+
+@{
+    var displayableChildren = Model.Children?.Where(c => c.IsDisplayable).OrderBy(c => c.SeqNo).ToList() ?? new List<SAMLitigation.Models.ViewModel.MenuItemViewModel>();
+    var hasDisplayableChildren = displayableChildren.Any();
+}
+
+@if (!Model.IsDisplayable && hasDisplayableChildren)
 {
-    @if (Model.Children != null && Model.Children.Any(c => c.IsDisplayable))
+    @* Parent hidden but children visible - render children directly *@
+    @foreach (var child in displayableChildren)
+    {
+        @await Html.PartialAsync("_MenuItemRecursive", child)
+    }
+}
+else if (Model.IsDisplayable)
+{
+    @if (hasDisplayableChildren)
     {
         <!-- Parent with Children (Collapsible) -->
         <li data-level="@Model.Level">
@@ -13,9 +32,13 @@
                aria-expanded="false"
                aria-controls="menu-@Model.ChildID">
                 <span>
-                    @if (Model.IsMenu)
+                    @if (Model.Level == 1)
                     {
                         <i class="bi bi-folder-fill me-2"></i>
+                    }
+                    else if (Model.IsMenu)
+                    {
+                        <i class="bi bi-folder me-2"></i>
                     }
                     else
                     {
@@ -28,7 +51,7 @@
 
             <!-- Recursive Children -->
             <ul class="collapse nav flex-column" id="menu-@Model.ChildID">
-                @foreach (var child in Model.Children.Where(c => c.IsDisplayable).OrderBy(c => c.SeqNo))
+                @foreach (var child in displayableChildren)
                 {
                     @await Html.PartialAsync("_MenuItemRecursive", child)
                 }
@@ -39,21 +62,32 @@
     {
         <!-- Leaf Node (No Children) - Link to Action -->
         <li data-level="@Model.Level">
-            <a class="nav-link"
-               asp-controller="@Model.ApplicationName"
-               asp-action="@Model.ChildCode">
-                <span>
-                    @if (Model.IsMenu)
-                    {
-                        <i class="bi bi-file-earmark-fill me-2"></i>
-                    }
-                    else
-                    {
-                        <i class="bi bi-circle-fill me-2" style="font-size: 0.5rem;"></i>
-                    }
+            @if (!string.IsNullOrEmpty(Model.ApplicationName) && !string.IsNullOrEmpty(Model.ChildCode))
+            {
+                <a class="nav-link"
+                   asp-controller="@Model.ApplicationName"
+                   asp-action="@Model.ChildCode">
+                    <span>
+                        @if (Model.Level == 1)
+                        {
+                            <i class="bi bi-file-earmark-fill me-2"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-circle-fill me-2" style="font-size: 0.5rem;"></i>
+                        }
+                        @Model.DisplayName
+                    </span>
+                </a>
+            }
+            else
+            {
+                <!-- Fallback if no controller/action specified -->
+                <span class="nav-link text-muted">
+                    <i class="bi bi-dash me-2"></i>
                     @Model.DisplayName
                 </span>
-            </a>
+            }
         </li>
     }
 }

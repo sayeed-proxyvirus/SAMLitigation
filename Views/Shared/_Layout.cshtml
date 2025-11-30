@@ -1,17 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Http
-@using SAMLitigation.Services
 @inject IHttpContextAccessor HttpContextAccessor
-@inject DynamicMenuService DynamicMenuService
 @{
-    var username = HttpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Guest";
-    var userIdString = HttpContextAccessor.HttpContext?.Session.GetString("userId");
-    decimal userId = 0;
-    decimal.TryParse(userIdString, out userId);
-
-    // Get user-specific menu based on their userId
-    var menuData = userId > 0
-        ? DynamicMenuService.GetUserMenuHierarchy(userId)
-        : new SAMLitigation.Models.ViewModel.HierarchicalMenuViewModel();
+    // Fixed userId for testing - remove login dependency
+    decimal userId = 4;
+    var username = "Test User";
 }
 
 <!DOCTYPE html>
@@ -35,7 +27,6 @@
             flex-wrap: nowrap;
         }
 
-        /* Sidebar styling */
         .sidebar {
             width: 280px;
             background-color: #343a40;
@@ -66,7 +57,6 @@
                     color: white;
                 }
 
-            /* Nested menu styling */
             .sidebar ul {
                 list-style: none;
                 padding-left: 0;
@@ -80,7 +70,6 @@
                 margin-bottom: 0.25rem;
             }
 
-            /* Collapse arrow animation */
             .sidebar .nav-link i.bi-caret-down-fill {
                 font-size: 0.8rem;
                 transition: transform 0.2s;
@@ -90,7 +79,6 @@
                 transform: rotate(180deg);
             }
 
-        /* Hide sidebar on small screens */
         @@media (max-width: 991.98px) {
             .sidebar
 
@@ -154,7 +142,6 @@
 
         }
 
-        /* Indentation for different levels */
         .sidebar li[data-level="2"] > a {
             padding-left: 1.5rem;
         }
@@ -170,35 +157,60 @@
         .sidebar li[data-level="5"] > a {
             padding-left: 4.5rem;
         }
+
+        #menuLoadingSpinner {
+            text-align: center;
+            padding: 1rem;
+        }
     </style>
 </head>
 <body>
     <!-- Sidebar -->
     <div class="sidebar d-flex flex-column p-3" id="sidebar">
-        <h4 class="text-white mb-4">SAM Menu</h4>
-
-        <ul class="nav nav-pills flex-column mb-auto">
-            <!-- Static Home Link -->
+        <ul class="nav nav-pills flex-column mb-auto" id="dynamicMenuContainer">
+            <!-- SAM Menu - Top Level Collapsible Parent -->
             <li>
-                <a class="nav-link" asp-controller="Home" asp-action="Index">
-                    <span><i class="bi bi-house-door-fill me-2"></i> Home</span>
+                <a class="nav-link text-white fw-bold"
+                   data-bs-toggle="collapse"
+                   href="#samMenuCollapse"
+                   role="button"
+                   aria-expanded="false"
+                   aria-controls="samMenuCollapse">
+                    <span>
+                        <i class="bi bi-grid-3x3-gap-fill me-2"></i>
+                        SAM Menu
+                    </span>
+                    <i class="bi bi-caret-down-fill"></i>
                 </a>
+
+                <!-- SAM Menu Content -->
+                <ul class="collapse show nav flex-column" id="samMenuCollapse">
+                    <!-- Static Home Link -->
+                    <li data-level="1">
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
+                            <span><i class="bi bi-house-door-fill me-2"></i> Home</span>
+                        </a>
+                    </li>
+
+                    <!-- Loading Spinner -->
+                    <li id="menuLoadingSpinner" data-level="1">
+                        <div class="text-center py-2">
+                            <div class="spinner-border spinner-border-sm text-light" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="text-light ms-2">Loading menu...</span>
+                        </div>
+                    </li>
+
+                    <!-- Dynamic Menu Container - Will be populated via AJAX -->
+                    <div id="dynamicMenuItems"></div>
+                </ul>
             </li>
 
-            <!-- Dynamic User-Specific Menu from Database -->
-            @if (menuData.RootItems != null && menuData.RootItems.Any())
-            {
-                @await Html.PartialAsync("_MenuItemPartial", menuData.RootItems)
-            }
-            else
-            {
-                <li class="text-muted ms-3">No menu items available</li>
-            }
-
-            <!-- Static Logout -->
+            <!-- Static Logout - Outside SAM Menu -->
             <li class="mt-3">
                 <form method="post" asp-controller="Login" asp-action="Logout">
-                    <button type="submit" class="btn btn-link nav-link text-start w-100">
+                    <button type="submit" class="btn btn-link nav-link text-start w-100 text-white">
                         <span><i class="bi bi-box-arrow-right me-2"></i> Logout</span>
                     </button>
                 </form>
@@ -216,11 +228,8 @@
                 <i class="bi bi-list"></i>
             </button>
             <span class="text-muted ms-auto">
-                Logged in as: <strong>@username</strong>
-                @if (userId > 0)
-                {
-                    <span class="badge bg-secondary">ID: @userId</span>
-                }
+                Test Mode - <strong>@username</strong>
+                <span class="badge bg-secondary">ID: @userId</span>
             </span>
         </div>
 
@@ -242,27 +251,68 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        // Mobile menu toggle
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        const toggleButton = document.getElementById('menuToggle');
+        var currentUserId = 4; // Fixed for testing
 
-        if (toggleButton) {
-            toggleButton.addEventListener('click', () => {
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
-            });
-        }
-
-        if (overlay) {
-            overlay.addEventListener('click', () => {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            });
-        }
-
-        // Highlight active menu item based on current URL
+        // Load dynamic menu on page load
         $(document).ready(function () {
+            console.log('Loading menu for fixed userId:', currentUserId);
+            loadDynamicMenu(currentUserId);
+
+            // Mobile menu toggle
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            const toggleButton = document.getElementById('menuToggle');
+
+            if (toggleButton) {
+                toggleButton.addEventListener('click', () => {
+                    sidebar.classList.toggle('active');
+                    overlay.classList.toggle('active');
+                });
+            }
+
+            if (overlay) {
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            }
+
+            // Highlight active menu item
+            highlightActiveMenu();
+        });
+
+        function loadDynamicMenu(userId) {
+            console.log('Loading menu for user:', userId);
+
+            $.ajax({
+                url: '@Url.Action("GetMenuHtml", "DynamicMenu")',
+                type: 'GET',
+                data: { userId: userId },
+                success: function (html) {
+                    console.log('✅ Menu loaded successfully');
+                    console.log('HTML Length:', html.length);
+                    $('#menuLoadingSpinner').hide();
+                    $('#dynamicMenuItems').html(html);
+                    highlightActiveMenu();
+
+                    // Log menu structure
+                    console.log('Menu items count:', $('#dynamicMenuItems li').length);
+                },
+                error: function (xhr, status, error) {
+                    console.error('❌ Error loading menu:', error);
+                    console.error('Status:', status);
+                    console.error('Response:', xhr.responseText);
+                    $('#menuLoadingSpinner').html(
+                        '<li class="text-danger ms-3">' +
+                        '<i class="bi bi-exclamation-triangle me-2"></i>' +
+                        'Error loading menu: ' + error +
+                        '</li>'
+                    );
+                }
+            });
+        }
+
+        function highlightActiveMenu() {
             var currentPath = window.location.pathname.toLowerCase();
 
             $('.sidebar .nav-link').each(function () {
@@ -270,13 +320,16 @@
                 if (href && href !== '#' && currentPath.indexOf(href.toLowerCase()) !== -1) {
                     $(this).addClass('active');
 
-                    // Expand parent collapses
-                    $(this).parents('.collapse').each(function() {
+                    // Expand parent collapses including SAM Menu
+                    $(this).parents('.collapse').each(function () {
                         $(this).addClass('show');
                     });
+
+                    // Ensure SAM Menu is expanded if any child is active
+                    $('#samMenuCollapse').addClass('show');
                 }
             });
-        });
+        }
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
