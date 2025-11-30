@@ -17,8 +17,14 @@ namespace SAMLitigation.Controllers
         [HttpGet]
         public IActionResult GetUserMenu(decimal userId)
         {
+            var userID = HttpContext.Session.GetString("userId");
+            if (!string.IsNullOrEmpty(userID)) 
+            {
+                _logger.LogInformation($"UserID is needed!!!!!");
+            }
             try
             {
+                userId = decimal.Parse(userID);
                 _logger.LogInformation($"GetUserMenu called for userId: {userId}");
                 var menu = _dynamicMenuService.GetUserMenuHierarchy(userId);
                 return Ok(menu);
@@ -37,8 +43,14 @@ namespace SAMLitigation.Controllers
         [HttpGet]
         public IActionResult GetMenuHtml(decimal userId)
         {
+            var userID = HttpContext.Session.GetString("userId");
+            if (!string.IsNullOrEmpty(userID))
+            {
+                _logger.LogInformation($"UserID is needed!!!!!");
+            }
             try
             {
+                userId = decimal.Parse(userID);
                 _logger.LogInformation($"GetMenuHtml called for userId: {userId}");
 
                 var menuHierarchy = _dynamicMenuService.GetUserMenuHierarchy(userId);
@@ -64,8 +76,14 @@ namespace SAMLitigation.Controllers
         [HttpGet]
         public IActionResult GetUserMenuFlat(decimal userId)
         {
+            var userID = HttpContext.Session.GetString("userId");
+            if (!string.IsNullOrEmpty(userID))
+            {
+                _logger.LogInformation($"UserID is needed!!!!!");
+            }
             try
             {
+                userId = decimal.Parse(userID);
                 var menuItems = _dynamicMenuService.GetUserMenuFlat(userId);
                 return Ok(menuItems);
             }
@@ -80,10 +98,16 @@ namespace SAMLitigation.Controllers
         /// Test endpoint - Remove after debugging
         /// </summary>
         [HttpGet]
-        public IActionResult TestMenuData(decimal userId = 4)
+        public IActionResult TestMenuData(decimal userId)
         {
+            var userID = HttpContext.Session.GetString("userId");
+            if (!string.IsNullOrEmpty(userID))
+            {
+                _logger.LogInformation($"UserID is needed!!!!!");
+            }
             try
             {
+                userId = decimal.Parse(userID);
                 var menu = _dynamicMenuService.GetUserMenuHierarchy(userId);
                 return Json(new
                 {

@@ -27,10 +27,10 @@ else if (Model.IsDisplayable)
         <li data-level="@Model.Level">
             <a class="nav-link"
                data-bs-toggle="collapse"
-               href="#menu-@Model.ChildID"
+               href="#menu-@Model.ChieldID"
                role="button"
                aria-expanded="false"
-               aria-controls="menu-@Model.ChildID">
+               aria-controls="menu-@Model.ChieldID">
                 <span>
                     @if (Model.Level == 1)
                     {
@@ -50,7 +50,7 @@ else if (Model.IsDisplayable)
             </a>
 
             <!-- Recursive Children -->
-            <ul class="collapse nav flex-column" id="menu-@Model.ChildID">
+            <ul class="collapse nav flex-column" id="menu-@Model.ChieldID">
                 @foreach (var child in displayableChildren)
                 {
                     @await Html.PartialAsync("_MenuItemRecursive", child)
@@ -62,11 +62,11 @@ else if (Model.IsDisplayable)
     {
         <!-- Leaf Node (No Children) - Link to Action -->
         <li data-level="@Model.Level">
-            @if (!string.IsNullOrEmpty(Model.ApplicationName) && !string.IsNullOrEmpty(Model.ChildCode))
+            @if (!string.IsNullOrEmpty(Model.ApplicationName) && !string.IsNullOrEmpty(Model.ChieldCode))
             {
                 <a class="nav-link"
                    asp-controller="@Model.ApplicationName"
-                   asp-action="@Model.ChildCode">
+                   asp-action="@Model.ChieldCode">
                     <span>
                         @if (Model.Level == 1)
                         {

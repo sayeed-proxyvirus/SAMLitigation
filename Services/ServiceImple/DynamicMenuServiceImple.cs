@@ -53,11 +53,11 @@ namespace SAMLitigation.Services.ServiceImple
         {
             try
             {
-                userId = 4;
+
                 var param = new SqlParameter("@UserId", userId);
                 //first rootmenu call
                 var rootMenus = _context.Set<UserMenuRootViewModel>()
-                    .FromSqlRaw("EXEC SP1_GetUserRootMenus @UserId", param)
+                    .FromSqlRaw("Select RT.RoleID as MenuID, RT.RoleName as DisplayName, RT.RoleCode as MenuCode from SecurityWeb_RoleTable RT\r\nleft join SecurityWeb_UserRoleRelation URR on URR.RoleID =  RT.RoleID\r\nleft Join UserTable UT on UT.UserId = URR.UserId\r\nWhere UT.UserId = @UserId" , param)
                     .ToList();
                 return rootMenus.Select(m => m.MenuID).Distinct().ToList();
             }
@@ -73,15 +73,15 @@ namespace SAMLitigation.Services.ServiceImple
             {
                 //all menu call
                 var menuItems = _context.MenuItems
-                    .FromSqlRaw("EXEC GETALL")
+                    .FromSqlRaw("EXEC GetFullSubMenusAndControllerMethodsForSecurityWeb")
                     .ToList();
 
                 return menuItems.Select(m => new MenuItemViewModel
                 {
                     ParentID = m.ParentID,
                     ParentCode = m.ParentCode,
-                    ChildID = m.ChildID,
-                    ChildCode = m.ChildCode ?? string.Empty,
+                    ChieldID = m.ChieldID,
+                    ChieldCode = m.ChieldCode ?? string.Empty,
                     DisplayName = m.DisplayName,
                     ApplicationName = m.ApplicationName,
                     SeqNo = m.SeqNo,
@@ -98,7 +98,7 @@ namespace SAMLitigation.Services.ServiceImple
         private List<MenuItemViewModel> BuildMenuHierarchy(List<decimal> rootMenuIds, List<MenuItemViewModel> allMenuItems)
         {
             //self-referencing stop
-            allMenuItems = allMenuItems.Where(x => x.ParentID != x.ChildID).ToList();
+            allMenuItems = allMenuItems.Where(x => x.ParentID != x.ChieldID).ToList();
             //dictionary banano lookup: ParentID -> List of Children
             var childrenLookup = allMenuItems
                 .GroupBy(x => x.ParentID)
@@ -115,7 +115,7 @@ namespace SAMLitigation.Services.ServiceImple
                     {
                         item.Level = 1;
                         //recall
-                        BuildChildrenRecursive(item, childrenLookup, 1, new HashSet<decimal> { item.ChildID });
+                        BuildChildrenRecursive(item, childrenLookup, 1, new HashSet<decimal> { item.ChieldID });
                         rootItems.Add(item);
                     }
                 }
@@ -130,29 +130,29 @@ namespace SAMLitigation.Services.ServiceImple
             HashSet<decimal> visitedInPath)
         {
             //check parent's ChildID has any children
-            if (!childrenLookup.ContainsKey(parent.ChildID))
+            if (!childrenLookup.ContainsKey(parent.ChieldID))
             {
                 return;
             }
 
-            var children = childrenLookup[parent.ChildID];
+            var children = childrenLookup[parent.   ChieldID];
             foreach (var child in children)
             {
                 //prevent loop to be infinite
-                if (visitedInPath.Contains(child.ChildID))
+                if (visitedInPath.Contains(child.ChieldID))
                 {
-                    _logger.LogWarning($"Circular reference detected: ChildID {child.ChildID} already in path");
+                    _logger.LogWarning($"Circular reference detected: ChildID {child.ChieldID} already in path");
                     continue;
                 }
                 //self-referencing stop
-                if (child.ParentID == child.ChildID)
+                if (child.ParentID == child.ChieldID)
                 {
                     continue;
                 }
                 child.Level = currentLevel + 1;
                 parent.Children.Add(child);
                 //path to visitednode
-                var newPath = new HashSet<decimal>(visitedInPath) { child.ChildID };
+                var newPath = new HashSet<decimal>(visitedInPath) { child.ChieldID };
                 //recall
                 BuildChildrenRecursive(child, childrenLookup, currentLevel + 1, newPath);
             }
